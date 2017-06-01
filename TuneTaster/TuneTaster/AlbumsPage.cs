@@ -84,6 +84,7 @@ namespace TuneTaster
             {
                 BackgroundColor = Color.FromHex("f2f2f2"),
                 Padding = new Thickness(7, 12, 7, 0),
+                IsEnabled = false,
                 IsVisible = false,
             };
             albumsLayout.Children.Add(albumTopLeftLayout, 0, 0); // Top left
@@ -200,11 +201,10 @@ namespace TuneTaster
         }
 
 
-
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="searchItem"></param>
+        /// <param name="searchItem"> What is returned from Spotify based on what the user typed in the search bar.</param>
         public void PopulateAlbumList(SearchItem searchItem)
         {
             // Clear out what was previously filled in the table before we load the new results.
@@ -396,6 +396,7 @@ namespace TuneTaster
         /// <param name="songAlbumImage">The cover image of the album.</param>
         public void UpdateFooterSong(ImageSource songAlbumImage, string songName, string songArtistName)
         {
+            footerBarLayout.IsEnabled = true;
             footerBarLayout.IsVisible = true;
             trackAlbumImage.Source = songAlbumImage;
             trackName.Text = songName;

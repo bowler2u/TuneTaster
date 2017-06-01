@@ -12,7 +12,7 @@ namespace TuneTaster
         public App()
         {
             // Start the MainPage.
-            MainPage = new MainPage();
+            MainPage = new SongsPage();
         }
 
         protected override void OnStart()

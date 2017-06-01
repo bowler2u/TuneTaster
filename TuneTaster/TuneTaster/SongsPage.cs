@@ -4,6 +4,8 @@ using SpotifyAPI.Web.Auth;
 using SpotifyAPI.Web.Enums;
 using SpotifyAPI.Web.Models;
 using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using Xamarin.Forms;
 
 namespace TuneTaster
@@ -13,10 +15,24 @@ namespace TuneTaster
         // --- Start of variables --//
         // Header.
         SearchBar searchBar;
-        StackLayout searchBarLayout;
+        Picker resultsTypePicker;
+        StackLayout headerLayout;
+        List<string> searchTypes;
+        string type = "track";
+        ActivityIndicator loadingSpinner;
 
-        // Main
+        // Main.
         TableView songsView;
+        StackLayout albumsTopLeftLayout;
+        StackLayout albumsTopRightLayout;
+        Frame albumFrame;
+        Grid albumsGridLayout;
+        ScrollView albumsScrollLayout;
+        StackLayout artistsTopLeftLayout;
+        StackLayout artistsTopRightLayout;
+        Grid artistsGridLayout;
+        Frame artistFrame;
+        ScrollView artistsScrollLayout;
 
         // Footer.
         Xamarin.Forms.Image trackAlbumImage;
@@ -26,25 +42,29 @@ namespace TuneTaster
         StackLayout footerTrackDetailsLayout;
         StackLayout footerTrackDetailsAndImageLayout;
         Grid footerBarLayout;
+        AbsoluteLayout test;
 
         // Music functionality.
         private static SpotifyWebAPI _spotify;
-        static ClientCredentialsAuth auth;
-        Token token;
         SearchItem searchItem;
         MediaPlayer player;
+
+        // Extras
+        static ClientCredentialsAuth auth;
+        Token token;
+        int albumIndex = 1;
+        int artistIndex = 1;
         // --- End of variables --//
 
         public SongsPage()
         {
-            // Authenticate Spotify
+            // --- Spotify Authentication --- //
             auth = new ClientCredentialsAuth()
             {
                 ClientId = "333de38e4a2744fcbe33eae8a39d8bce",
                 ClientSecret = "141675ff5e274186b45ef48493a9a5bf",
                 Scope = Scope.UserReadPrivate,
             };
-            //With this token object, I can now make calls
             token = auth.DoAuth();
             _spotify = new SpotifyWebAPI()
             {
@@ -52,10 +72,9 @@ namespace TuneTaster
                 AccessToken = token.AccessToken,
             };
 
-            // Title of the individual tabbed page.
-            Title = "Songs";
 
-            // Create the searchbar section.
+
+            // --- Header Content --- //
             searchBar = new SearchBar
             {
                 Placeholder = "Search Songs",
@@ -63,44 +82,175 @@ namespace TuneTaster
                 PlaceholderColor = Color.White,
                 CancelButtonColor = Color.White,
                 SearchCommand = new Command(() => {
-                    // Grab what the user typed in the search bar, restrict the API to only search tracks, and store the value as a variable.
-                    searchItem = _spotify.SearchItems(searchBar.Text, SearchType.Track, 50);
-
-                    // Clear out what was previously filled in the table before we load the new results.
-                    songsView.IsVisible = true;
-                    songsView.Root.Clear();
-
-                    // For each song, we want to create a new TableSection (This will display a list of the 20 first songs from Spotify API)
-                    foreach (var song in searchItem.Tracks.Items)
+                    if (type == "track")
                     {
-                        UpdateSongList(song.Album.Images[1].Url, song.Name, song.Artists[0].Name, song.PreviewUrl);
+                        loadingSpinner.IsVisible = true;
+                        loadingSpinner.IsRunning = true;
+                        albumsScrollLayout.IsVisible = false;
+                        artistsScrollLayout.IsVisible = false;
+                        artistsTopLeftLayout.Children.Clear();
+                        artistsTopRightLayout.Children.Clear();
+                        albumsTopLeftLayout.Children.Clear();
+                        albumsTopRightLayout.Children.Clear();
+                        songsView.Root.Clear();
+
+                        Task.Factory.StartNew(() => searchItem = _spotify.SearchItems(searchBar.Text, SearchType.Track, 50))
+                            .ContinueWith(antecendent =>
+                            {
+                                foreach(FullTrack track in searchItem.Tracks.Items)
+                                {
+                                    UpdateSongList(track.Album.Images[1].Url, track.Name, track.Artists[0].Name, track.PreviewUrl);
+                                }
+                                loadingSpinner.IsVisible = false;
+                                loadingSpinner.IsRunning = false;
+                                songsView.IsVisible = true;
+                            },
+                            TaskScheduler.FromCurrentSynchronizationContext()
+                            );
+                    }
+                    else if (type == "album")
+                    {
+                        loadingSpinner.IsVisible = true;
+                        loadingSpinner.IsRunning = true;
+                        artistsScrollLayout.IsVisible = false;
+                        songsView.IsVisible = false;
+                        albumsTopLeftLayout.Children.Clear();
+                        albumsTopRightLayout.Children.Clear();
+                        artistsTopLeftLayout.Children.Clear();
+                        artistsTopRightLayout.Children.Clear();
+                        songsView.Root.Clear();
+
+                        Task.Factory.StartNew(() => searchItem = _spotify.SearchItems(searchBar.Text, SearchType.Album, 50))
+                            .ContinueWith(antecendent =>
+                            {
+                                foreach (SimpleAlbum album in searchItem.Albums.Items)
+                                {
+                                    albumIndex++;
+                                    UpdateAlbumList(album, album.Images[0].Url, album.Name, album.Type);
+                                }
+                                loadingSpinner.IsVisible = false;
+                                loadingSpinner.IsRunning = false;
+                                albumsScrollLayout.IsVisible = true;
+                            },
+                            TaskScheduler.FromCurrentSynchronizationContext()
+                            );
+                    }
+                    else if (type == "artist")
+                    {
+                        loadingSpinner.IsVisible = true;
+                        loadingSpinner.IsRunning = true;
+                        albumsScrollLayout.IsVisible = false;
+                        songsView.IsVisible = false;
+                        albumsTopLeftLayout.Children.Clear();
+                        albumsTopRightLayout.Children.Clear();
+                        artistsTopLeftLayout.Children.Clear();
+                        artistsTopRightLayout.Children.Clear();
+                        songsView.Root.Clear();
+
+                        Task.Factory.StartNew(() => searchItem = _spotify.SearchItems(searchBar.Text, SearchType.Artist, 50))
+                            .ContinueWith(antecendent =>
+                            {
+                                foreach (FullArtist artist in searchItem.Artists.Items)
+                                {
+                                    artistIndex++;
+                                    UpdateArtistList(artist, artist.Images[0].Url, artist.Name);
+                                }
+                                loadingSpinner.IsVisible = false;
+                                loadingSpinner.IsRunning = false;
+                                artistsScrollLayout.IsVisible = true;
+                            },
+                            TaskScheduler.FromCurrentSynchronizationContext()
+                            );
                     }
                 })
             };
-            searchBarLayout = new StackLayout
+            searchTypes = new List<string>
             {
-                Children = {searchBar},
+                "Tracks", "Albums", "Artists"
+            };
+            resultsTypePicker = new Picker
+            {
+                Title = " Results Type",
+                TextColor = Color.White,
+                ItemsSource = searchTypes
+            };
+            resultsTypePicker.SelectedIndexChanged += (sender, args) =>
+            {
+                if (resultsTypePicker.SelectedIndex == 0)
+                {
+                    type = "track";
+                }
+                else if (resultsTypePicker.SelectedIndex == 1)
+                {
+                    type = "album";
+                }
+                else if (resultsTypePicker.SelectedIndex == 2)
+                {
+                    type = "artist";
+                }
+            };
+            headerLayout = new StackLayout
+            {
+                Children = { resultsTypePicker, searchBar },
                 BackgroundColor = Color.FromHex("009688"),
                 Padding = new Thickness(0, 5, 0, 5)
             };
+            loadingSpinner = new ActivityIndicator()
+            {
+                Margin = new Thickness(0, 100, 0, 0),
+                IsVisible = false,
+                IsRunning = false,
+                Color = Color.FromHex("009688"),
+            };
 
 
-            // Create the songs section.
+
+            // --- Main Content --- //
             songsView = new TableView
             {
                 RowHeight = 70,
                 Intent = TableIntent.Data,
+                IsVisible = false,
+            };
+
+            albumsTopLeftLayout = new StackLayout { };
+            albumsTopRightLayout = new StackLayout { };
+            albumsGridLayout = new Grid
+            {
+                BackgroundColor = Color.FromHex("f2f2f2"),
+                Padding = new Thickness(7, 12, 7, 0),
+            };
+            albumsGridLayout.Children.Add(albumsTopLeftLayout, 0, 0); // Top left
+            albumsGridLayout.Children.Add(albumsTopRightLayout, 1, 0); // Top right
+            albumsScrollLayout = new ScrollView {
+                Content = albumsGridLayout,
+                IsVisible = false
+            };
+
+            artistsTopLeftLayout = new StackLayout { };
+            artistsTopRightLayout = new StackLayout { };
+            artistsGridLayout = new Grid
+            {
+                BackgroundColor = Color.FromHex("f2f2f2"),
+                Padding = new Thickness(7, 12, 7, 0),
+            };
+            artistsGridLayout.Children.Add(artistsTopLeftLayout, 0, 0); // Top left
+            artistsGridLayout.Children.Add(artistsTopRightLayout, 1, 0); // Top right
+            artistsScrollLayout = new ScrollView
+            {
+                Content = artistsGridLayout,
                 IsVisible = false
             };
 
 
-            // Create all necessary views for the bottom footer.
+
+
+            // --- Footer Content --- //
             trackAlbumImage = new Xamarin.Forms.Image{};
             trackName = new Label{TextColor = Color.White};
             trackArtist = new Label{TextColor = Color.White};
             playOrPause = new Xamarin.Forms.Image{Source = "pause.png" };
 
-            // Create the footer track name and artist layout
             footerTrackDetailsLayout = new StackLayout
             {
                 Padding = new Thickness(4, 4, 0, 0),
@@ -109,8 +259,6 @@ namespace TuneTaster
                     trackArtist
                 }
             };
-
-            // Create the footer track album, name, and artist layout.
             footerTrackDetailsAndImageLayout = new StackLayout
             {
                 Orientation = StackOrientation.Horizontal,
@@ -119,14 +267,11 @@ namespace TuneTaster
                     footerTrackDetailsLayout
                 }
             };
-
-            // Create the footer bar layout
             footerBarLayout = new Grid
             {
                 BackgroundColor = Color.FromHex("4DB6AC"),
                 Padding = new Thickness(4, 6, 4, 6),
-                HeightRequest = 70,
-                IsVisible = false,
+                IsVisible = false
             };
             footerBarLayout.Children.Add(footerTrackDetailsAndImageLayout, 0, 0);
             footerBarLayout.Children.Add(new BoxView {}, 1, 0);
@@ -134,7 +279,7 @@ namespace TuneTaster
             footerBarLayout.Children.Add(playOrPause, 3, 0);
             Grid.SetColumnSpan(footerTrackDetailsAndImageLayout, 3);
 
-            // Handle when a user taps on the play or pause image.
+
             var tapGestureRecognizer = new TapGestureRecognizer();
             tapGestureRecognizer.Tapped += (s, e) => {
                 if (player.IsPlaying)
@@ -151,17 +296,22 @@ namespace TuneTaster
             playOrPause.GestureRecognizers.Add(tapGestureRecognizer);
 
 
-            // Build the page.
+
+            // --- Build Page --- //
             Content = new StackLayout
             {
                 Spacing = 0,
                 Children = {
-                    searchBarLayout,
+                    headerLayout,
+                    loadingSpinner,
                     songsView,
+                    albumsScrollLayout,
+                    artistsScrollLayout,
                     footerBarLayout
                 }
             };
         }
+
 
 
         /// <summary>
@@ -169,7 +319,7 @@ namespace TuneTaster
         /// and only told to display tracks. For every song that is returned from Spotify(50), a new ImageCell will be created
         /// displaying the track's name, album name, and album cover image.
         /// </summary>
-        public void UpdateSongList(ImageSource trackAlbumImage, string trackName, string trackArtist, string trackPreviewUrl)
+        public void UpdateSongList(ImageSource trackImageSource, string trackName, string trackArtist, string trackPreviewUrl)
         {
             songsView.Root.Add(
             new TableSection
@@ -177,13 +327,13 @@ namespace TuneTaster
                 new ImageCell
                 {
                     // Some differences with loading images in initial release.
-                    ImageSource = trackAlbumImage,
+                    ImageSource = trackImageSource,
                     Text = trackName,
                     Detail = trackArtist,
                     TextColor = Color.FromHex("4DB6AC"),
                     Command = new Command(() =>
                     {
-                        UpdateFooterSong(trackAlbumImage, trackName, trackArtist);
+                        UpdateFooterSong(trackImageSource, trackName, trackArtist);
                         playOrPause.Source = "pause.png";
                         if (player == null)
                         {
@@ -205,6 +355,138 @@ namespace TuneTaster
         }
 
 
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="album"></param>
+        /// <param name="albumImageSource"></param>
+        /// <param name="albumName"></param>
+        /// <param name="albumType"></param>
+        public void UpdateAlbumList(SimpleAlbum album, ImageSource albumImageSource, string albumName, string albumType)
+        {
+            albumFrame = new Frame
+            {
+                HeightRequest = 250,
+                Padding = 0,
+                GestureRecognizers = {
+                    new TapGestureRecognizer {
+                        Command = new Command(() => {
+                            albumsScrollLayout.IsVisible = false;
+                            artistsScrollLayout.IsVisible = false;
+                            songsView.IsVisible = true;
+                            songsView.Root.Clear();
+                            footerBarLayout.HeightRequest = 70;
+                            // Grab what the user typed in the search bar, restrict the API to only search tracks, and store the value as a variable.
+                            Paging<SimpleTrack> tracks = _spotify.GetAlbumTracks(album.Id);
+
+                            // For each song, we want to create a new TableSection (This will display a list of the 20 first songs from Spotify API)
+                            foreach (var track in tracks.Items)
+                            {
+                                UpdateSongList(album.Images[0].Url, track.Name, track.Artists[0].Name, track.PreviewUrl);
+                            }
+                        })
+                    },
+                },
+                Content = new StackLayout
+                {
+                    Children = {
+                        new Xamarin.Forms.Image
+                        {
+                            Source = albumImageSource,
+                        },
+                        new Label
+                        {
+                            Text = albumName,
+                            TextColor = Color.FromHex("4DB6AC"),
+                            Margin = new Thickness (5, 0, 0, 0),
+                            HeightRequest = 18
+                        },
+                        new Label
+                        {
+                            Text = albumType,
+                            FontSize = 11,
+                            Margin = new Thickness (5, 0, 0, 0),
+                            HeightRequest = 18
+                        }
+                    }
+                }
+            };
+            if (albumIndex % 2 == 0)
+            {
+                albumsTopLeftLayout.Children.Add(albumFrame);
+            }
+            else
+            {
+                albumsTopRightLayout.Children.Add(albumFrame);
+            }
+        }
+
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="artist"></param>
+        /// <param name="artistImageSource"></param>
+        /// <param name="artistName"></param>
+        public void UpdateArtistList(FullArtist artist, ImageSource artistImageSource, string artistName)
+        {
+            artistFrame = new Frame
+            {
+                HeightRequest = 250,
+                Padding = 0,
+                GestureRecognizers = {
+                    new TapGestureRecognizer {
+                        Command = new Command(() => {
+                            artistsScrollLayout.IsVisible = false;
+                            songsView.IsVisible = false;
+                            albumsScrollLayout.IsVisible = true;
+                            albumsTopLeftLayout.Children.Clear();
+                            albumsTopRightLayout.Children.Clear();
+                            footerBarLayout.HeightRequest = 70;
+
+                            albumIndex = 1;
+                            Paging<SimpleAlbum> albums = _spotify.GetArtistsAlbums(artist.Id);
+                            foreach (var album in albums.Items)
+                            {
+                                albumIndex++;
+                                UpdateAlbumList(album, album.Images[0].Url, album.Name, album.Type);
+                            }
+                        })
+                    },
+                },
+                Content = new StackLayout
+                {
+                    Children = {
+                        new Xamarin.Forms.Image
+                        {
+                            Source = artistImageSource,
+                        },
+                        new Label
+                        {
+                            Text = artistName,
+                            TextColor = Color.FromHex("4DB6AC"),
+                            Margin = new Thickness (5, 0, 0, 0),
+                            HeightRequest = 18
+                        }
+                    }
+                }
+            };
+            if (artistIndex % 2 == 0)
+            {
+                artistsTopLeftLayout.Children.Add(artistFrame);
+            }
+            else
+            {
+                artistsTopRightLayout.Children.Add(artistFrame);
+            }
+        }
+
+
+
+
         /// <summary>
         /// Whenever a song is taped from the list, this function will get called to display the current playing track the user
         /// just selected at the bottom of the screen.
@@ -218,6 +500,29 @@ namespace TuneTaster
             trackAlbumImage.Source = songAlbumImage;
             trackName.Text = songName;
             trackArtist.Text = songArtistName;
+        }
+
+
+
+        /// <summary>
+        /// If the user is has selected an album and wants to return, this will override the default Android back button behaviour to show the 
+        /// list of albums.
+        /// </summary>
+        /// <returns>Prevents the app from closing.</returns>
+        protected override bool OnBackButtonPressed()
+        {
+            if (songsView.IsVisible == true)
+            {
+                albumsScrollLayout.IsVisible = true;
+                songsView.IsVisible = false;
+            }
+
+            else if (albumsScrollLayout.IsVisible == true)
+            {
+                artistsScrollLayout.IsVisible = true;
+                albumsScrollLayout.IsVisible = false;
+            }
+            return true;
         }
     }
 }

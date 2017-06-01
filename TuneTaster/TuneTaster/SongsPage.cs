@@ -14,12 +14,12 @@ namespace TuneTaster
     {
         // --- Start of variables --//
         // Header.
-        SearchBar searchBar;
         Picker resultsTypePicker;
-        StackLayout headerLayout;
+        SearchBar searchBar;
         List<string> searchTypes;
         string type = "track";
         ActivityIndicator loadingSpinner;
+        StackLayout header;
 
         // Main.
         TableView songsView;
@@ -33,6 +33,7 @@ namespace TuneTaster
         Grid artistsGridLayout;
         Frame artistFrame;
         ScrollView artistsScrollLayout;
+        StackLayout main;
 
         // Footer.
         Xamarin.Forms.Image trackAlbumImage;
@@ -42,7 +43,7 @@ namespace TuneTaster
         StackLayout footerTrackDetailsLayout;
         StackLayout footerTrackDetailsAndImageLayout;
         Grid footerBarLayout;
-        AbsoluteLayout test;
+        StackLayout footer;
 
         // Music functionality.
         private static SpotifyWebAPI _spotify;
@@ -189,15 +190,9 @@ namespace TuneTaster
                     type = "artist";
                 }
             };
-            headerLayout = new StackLayout
-            {
-                Children = { resultsTypePicker, searchBar },
-                BackgroundColor = Color.FromHex("009688"),
-                Padding = new Thickness(0, 5, 0, 5)
-            };
             loadingSpinner = new ActivityIndicator()
             {
-                Margin = new Thickness(0, 100, 0, 0),
+                Margin = new Thickness(0, 225, 0, 0),
                 IsVisible = false,
                 IsRunning = false,
                 Color = Color.FromHex("009688"),
@@ -269,16 +264,15 @@ namespace TuneTaster
             };
             footerBarLayout = new Grid
             {
+                VerticalOptions = LayoutOptions.FillAndExpand,
                 BackgroundColor = Color.FromHex("4DB6AC"),
                 Padding = new Thickness(4, 6, 4, 6),
-                IsVisible = false
             };
             footerBarLayout.Children.Add(footerTrackDetailsAndImageLayout, 0, 0);
             footerBarLayout.Children.Add(new BoxView {}, 1, 0);
             footerBarLayout.Children.Add(new BoxView {}, 2, 0);
             footerBarLayout.Children.Add(playOrPause, 3, 0);
             Grid.SetColumnSpan(footerTrackDetailsAndImageLayout, 3);
-
 
             var tapGestureRecognizer = new TapGestureRecognizer();
             tapGestureRecognizer.Tapped += (s, e) => {
@@ -297,17 +291,45 @@ namespace TuneTaster
 
 
 
+
+
+
+            header = new StackLayout
+            {
+                BackgroundColor = Color.FromHex("009688"),
+                Padding = new Thickness(0, 5, 0, 5),
+                Children = {
+                    resultsTypePicker,
+                    searchBar,
+                }
+            };
+            main = new StackLayout
+            {
+                VerticalOptions = LayoutOptions.FillAndExpand,
+                Children = {
+                    loadingSpinner,
+                    songsView,
+                    albumsScrollLayout,
+                    artistsScrollLayout,
+                }
+            };
+            footer = new StackLayout
+            {
+                IsVisible = false,
+                HeightRequest = 70,
+                Children = {
+                    footerBarLayout
+                }
+            };
+
             // --- Build Page --- //
             Content = new StackLayout
             {
                 Spacing = 0,
                 Children = {
-                    headerLayout,
-                    loadingSpinner,
-                    songsView,
-                    albumsScrollLayout,
-                    artistsScrollLayout,
-                    footerBarLayout
+                    header,
+                    main,
+                    footer
                 }
             };
         }
@@ -377,7 +399,6 @@ namespace TuneTaster
                             artistsScrollLayout.IsVisible = false;
                             songsView.IsVisible = true;
                             songsView.Root.Clear();
-                            footerBarLayout.HeightRequest = 70;
                             // Grab what the user typed in the search bar, restrict the API to only search tracks, and store the value as a variable.
                             Paging<SimpleTrack> tracks = _spotify.GetAlbumTracks(album.Id);
 
@@ -496,7 +517,7 @@ namespace TuneTaster
         /// <param name="songAlbumImage">The cover image of the album.</param>
         public void UpdateFooterSong(ImageSource songAlbumImage, string songName, string songArtistName)
         {
-            footerBarLayout.IsVisible = true;
+            footer.IsVisible = true;
             trackAlbumImage.Source = songAlbumImage;
             trackName.Text = songName;
             trackArtist.Text = songArtistName;

@@ -1,4 +1,5 @@
 ﻿using Android.Media;
+using Android.Widget;
 using SpotifyAPI.Web;
 using SpotifyAPI.Web.Auth;
 using SpotifyAPI.Web.Enums;
@@ -12,6 +13,7 @@ namespace TuneTaster
 {
     class SongsPage : ContentPage
     {
+
         // --- Start of variables --//
         // Header.
         Picker resultsTypePicker;
@@ -27,12 +29,12 @@ namespace TuneTaster
         StackLayout albumsTopRightLayout;
         Frame albumFrame;
         Grid albumsGridLayout;
-        ScrollView albumsScrollLayout;
+        Xamarin.Forms.ScrollView albumsScrollLayout;
         StackLayout artistsTopLeftLayout;
         StackLayout artistsTopRightLayout;
         Grid artistsGridLayout;
         Frame artistFrame;
-        ScrollView artistsScrollLayout;
+        Xamarin.Forms.ScrollView artistsScrollLayout;
         StackLayout main;
 
         // Footer.
@@ -55,6 +57,7 @@ namespace TuneTaster
         Token token;
         int albumIndex = 1;
         int artistIndex = 1;
+        Toast previewToast;
         // --- End of variables --//
 
         public SongsPage()
@@ -100,7 +103,15 @@ namespace TuneTaster
                             {
                                 foreach(FullTrack track in searchItem.Tracks.Items)
                                 {
-                                    UpdateSongList(track.Album.Images[1].Url, track.Name, track.Artists[0].Name, track.PreviewUrl);
+                                    if (track.Album.Images.Count > 0)
+                                    {
+                                        UpdateSongList(track.Album.Images[0].Url, track.Name, track.Artists[0].Name, track.PreviewUrl);
+                                    }
+                                    else
+                                    {
+                                        UpdateSongList("Icon.png", track.Name, track.Artists[0].Name, track.PreviewUrl);
+                                    }
+                                    
                                 }
                                 loadingSpinner.IsVisible = false;
                                 loadingSpinner.IsRunning = false;
@@ -127,7 +138,15 @@ namespace TuneTaster
                                 foreach (SimpleAlbum album in searchItem.Albums.Items)
                                 {
                                     albumIndex++;
-                                    UpdateAlbumList(album, album.Images[0].Url, album.Name, album.Type);
+                                    if (album.Images.Count > 0)
+                                    {
+                                        UpdateAlbumList(album, album.Images[0].Url, album.Name, album.Type);
+                                    }
+                                    else
+                                    {
+                                        UpdateAlbumList(album, "Icon.png", album.Name, album.Type);
+                                    }
+                                    
                                 }
                                 loadingSpinner.IsVisible = false;
                                 loadingSpinner.IsRunning = false;
@@ -146,7 +165,7 @@ namespace TuneTaster
                         albumsTopRightLayout.Children.Clear();
                         artistsTopLeftLayout.Children.Clear();
                         artistsTopRightLayout.Children.Clear();
-                        songsView.Root.Clear();
+                        songsView.Root.Clear(); 
 
                         Task.Factory.StartNew(() => searchItem = _spotify.SearchItems(searchBar.Text, SearchType.Artist, 50))
                             .ContinueWith(antecendent =>
@@ -154,11 +173,18 @@ namespace TuneTaster
                                 foreach (FullArtist artist in searchItem.Artists.Items)
                                 {
                                     artistIndex++;
-                                    UpdateArtistList(artist, artist.Images[0].Url, artist.Name);
+                                    if (artist.Images.Count > 0)
+                                    {
+                                        UpdateArtistList(artist, artist.Images[0].Url, artist.Name);
+                                    }
+                                    else
+                                    {
+                                        UpdateArtistList(artist, "Icon.png", artist.Name);
+                                    }
                                 }
-                                loadingSpinner.IsVisible = false;
-                                loadingSpinner.IsRunning = false;
-                                artistsScrollLayout.IsVisible = true;
+                                    loadingSpinner.IsVisible = false;
+                                    loadingSpinner.IsRunning = false;
+                                    artistsScrollLayout.IsVisible = true;
                             },
                             TaskScheduler.FromCurrentSynchronizationContext()
                             );
@@ -192,10 +218,10 @@ namespace TuneTaster
             };
             loadingSpinner = new ActivityIndicator()
             {
-                Margin = new Thickness(0, 225, 0, 0),
+                VerticalOptions = LayoutOptions.CenterAndExpand,
                 IsVisible = false,
                 IsRunning = false,
-                Color = Color.FromHex("009688"),
+                Color = Color.FromHex("FFAB40"),
             };
 
 
@@ -217,7 +243,8 @@ namespace TuneTaster
             };
             albumsGridLayout.Children.Add(albumsTopLeftLayout, 0, 0); // Top left
             albumsGridLayout.Children.Add(albumsTopRightLayout, 1, 0); // Top right
-            albumsScrollLayout = new ScrollView {
+            albumsScrollLayout = new Xamarin.Forms.ScrollView
+            {
                 Content = albumsGridLayout,
                 IsVisible = false
             };
@@ -231,7 +258,7 @@ namespace TuneTaster
             };
             artistsGridLayout.Children.Add(artistsTopLeftLayout, 0, 0); // Top left
             artistsGridLayout.Children.Add(artistsTopRightLayout, 1, 0); // Top right
-            artistsScrollLayout = new ScrollView
+            artistsScrollLayout = new Xamarin.Forms.ScrollView
             {
                 Content = artistsGridLayout,
                 IsVisible = false
@@ -242,7 +269,7 @@ namespace TuneTaster
 
             // --- Footer Content --- //
             trackAlbumImage = new Xamarin.Forms.Image{};
-            trackName = new Label{TextColor = Color.White};
+            trackName = new Label{TextColor = Color.Black };
             trackArtist = new Label{TextColor = Color.White};
             playOrPause = new Xamarin.Forms.Image{Source = "pause.png" };
 
@@ -265,7 +292,7 @@ namespace TuneTaster
             footerBarLayout = new Grid
             {
                 VerticalOptions = LayoutOptions.FillAndExpand,
-                BackgroundColor = Color.FromHex("4DB6AC"),
+                BackgroundColor = Color.FromHex("4FC3F7"),
                 Padding = new Thickness(4, 6, 4, 6),
             };
             footerBarLayout.Children.Add(footerTrackDetailsAndImageLayout, 0, 0);
@@ -296,7 +323,7 @@ namespace TuneTaster
 
             header = new StackLayout
             {
-                BackgroundColor = Color.FromHex("009688"),
+                BackgroundColor = Color.FromHex("03A9F4"),
                 Padding = new Thickness(0, 5, 0, 5),
                 Children = {
                     resultsTypePicker,
@@ -352,7 +379,7 @@ namespace TuneTaster
                     ImageSource = trackImageSource,
                     Text = trackName,
                     Detail = trackArtist,
-                    TextColor = Color.FromHex("4DB6AC"),
+                    TextColor = Color.FromHex("4FC3F7"),
                     Command = new Command(() =>
                     {
                         UpdateFooterSong(trackImageSource, trackName, trackArtist);
@@ -367,9 +394,23 @@ namespace TuneTaster
                             player.Stop();
                             player.Reset();
                         }
-                        player.SetDataSource (trackPreviewUrl);
-                        player.Prepare();
-                        player.Start();
+                        if (trackPreviewUrl != null)
+                        {
+                            player.SetDataSource (trackPreviewUrl);
+                            player.Prepare();
+                            player.Start();
+                        }
+                        else
+                        {
+                            if (previewToast != null)
+                            {
+                                previewToast.Cancel();
+                            }
+                            previewToast = Toast.MakeText(Android.App.Application.Context, "No preview avaiable!", ToastLength.Short);
+                            previewToast.SetGravity(Android.Views.GravityFlags.Center, 0, 0);
+                            previewToast.Show();               
+                        }
+                        
                     })
                 }
             }
@@ -420,7 +461,7 @@ namespace TuneTaster
                         new Label
                         {
                             Text = albumName,
-                            TextColor = Color.FromHex("4DB6AC"),
+                            TextColor = Color.FromHex("FFAB40"),
                             Margin = new Thickness (5, 0, 0, 0),
                             HeightRequest = 18
                         },

@@ -29,6 +29,8 @@ namespace TuneTaster
             var plateId = searchView.Context.Resources.GetIdentifier("android:id/search_plate", null, null);
             var plate = Control.FindViewById(plateId);
             plate.SetBackgroundColor(Android.Graphics.Color.Transparent);
+
+            //search_close_btn
         }
     }
 }

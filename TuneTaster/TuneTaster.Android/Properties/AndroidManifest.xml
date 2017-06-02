@@ -3,5 +3,12 @@
 	<uses-sdk android:minSdkVersion="15" />
 	<uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
 	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-	<application android:label="TuneTaster.Android"></application>
+  <application
+    android:label="TuneTaster.Android"
+    android:allowBackup="true"
+    android:hardwareAccelerated="false"
+    android:icon="@mipmap/ic_launcher"
+    android:largeHeap="true"
+    android:supportsRtl="true">
+  </application>
 </manifest>

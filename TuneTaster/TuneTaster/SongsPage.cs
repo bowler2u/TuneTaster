@@ -13,8 +13,21 @@ namespace TuneTaster
 {
     class SongsPage : ContentPage
     {
+        // --- Spotify Authentication --- //
+        private static ClientCredentialsAuth auth = new ClientCredentialsAuth
+        {
+            ClientId = "333de38e4a2744fcbe33eae8a39d8bce",
+            ClientSecret = "141675ff5e274186b45ef48493a9a5bf",
+            Scope = Scope.UserReadPrivate,
+        };
+        private static Token token = auth.DoAuth();
+        private static SpotifyWebAPI _spotify = new SpotifyWebAPI
+        {
+            TokenType = token.TokenType,
+            AccessToken = token.AccessToken,
+        };
 
-        // --- Start of variables --//
+        // --- Variables --//
         // Header.
         Picker resultsTypePicker;
         SearchBar searchBar;
@@ -48,37 +61,21 @@ namespace TuneTaster
         StackLayout footer;
 
         // Music functionality.
-        private static SpotifyWebAPI _spotify;
         SearchItem searchItem;
         MediaPlayer player;
 
         // Extras
-        static ClientCredentialsAuth auth;
-        Token token;
         int albumIndex = 1;
         int artistIndex = 1;
-        Toast previewToast;
-        // --- End of variables --//
+        Toast noPreviewToast;
+        Toast noresultsToast;
+        TapGestureRecognizer tapGestureRecognizer;
+
 
         public SongsPage()
         {
-            // --- Spotify Authentication --- //
-            auth = new ClientCredentialsAuth()
-            {
-                ClientId = "333de38e4a2744fcbe33eae8a39d8bce",
-                ClientSecret = "141675ff5e274186b45ef48493a9a5bf",
-                Scope = Scope.UserReadPrivate,
-            };
-            token = auth.DoAuth();
-            _spotify = new SpotifyWebAPI()
-            {
-                TokenType = token.TokenType,
-                AccessToken = token.AccessToken,
-            };
-
-
-
             // --- Header Content --- //
+            // Search Bar.
             searchBar = new SearchBar
             {
                 Placeholder = "Search Songs",
@@ -88,118 +85,27 @@ namespace TuneTaster
                 SearchCommand = new Command(() => {
                     if (type == "track")
                     {
-                        loadingSpinner.IsVisible = true;
-                        loadingSpinner.IsRunning = true;
-                        albumsScrollLayout.IsVisible = false;
-                        artistsScrollLayout.IsVisible = false;
-                        artistsTopLeftLayout.Children.Clear();
-                        artistsTopRightLayout.Children.Clear();
-                        albumsTopLeftLayout.Children.Clear();
-                        albumsTopRightLayout.Children.Clear();
-                        songsView.Root.Clear();
-
-                        Task.Factory.StartNew(() => searchItem = _spotify.SearchItems(searchBar.Text, SearchType.Track, 50))
-                            .ContinueWith(antecendent =>
-                            {
-                                foreach(FullTrack track in searchItem.Tracks.Items)
-                                {
-                                    if (track.Album.Images.Count > 0)
-                                    {
-                                        UpdateSongList(track.Album.Images[0].Url, track.Name, track.Artists[0].Name, track.PreviewUrl);
-                                    }
-                                    else
-                                    {
-                                        UpdateSongList("Icon.png", track.Name, track.Artists[0].Name, track.PreviewUrl);
-                                    }
-                                    
-                                }
-                                loadingSpinner.IsVisible = false;
-                                loadingSpinner.IsRunning = false;
-                                songsView.IsVisible = true;
-                            },
-                            TaskScheduler.FromCurrentSynchronizationContext()
-                            );
+                        SearchTracks();
                     }
                     else if (type == "album")
                     {
-                        loadingSpinner.IsVisible = true;
-                        loadingSpinner.IsRunning = true;
-                        artistsScrollLayout.IsVisible = false;
-                        songsView.IsVisible = false;
-                        albumsTopLeftLayout.Children.Clear();
-                        albumsTopRightLayout.Children.Clear();
-                        artistsTopLeftLayout.Children.Clear();
-                        artistsTopRightLayout.Children.Clear();
-                        songsView.Root.Clear();
-
-                        Task.Factory.StartNew(() => searchItem = _spotify.SearchItems(searchBar.Text, SearchType.Album, 50))
-                            .ContinueWith(antecendent =>
-                            {
-                                foreach (SimpleAlbum album in searchItem.Albums.Items)
-                                {
-                                    albumIndex++;
-                                    if (album.Images.Count > 0)
-                                    {
-                                        UpdateAlbumList(album, album.Images[0].Url, album.Name, album.Type);
-                                    }
-                                    else
-                                    {
-                                        UpdateAlbumList(album, "Icon.png", album.Name, album.Type);
-                                    }
-                                    
-                                }
-                                loadingSpinner.IsVisible = false;
-                                loadingSpinner.IsRunning = false;
-                                albumsScrollLayout.IsVisible = true;
-                            },
-                            TaskScheduler.FromCurrentSynchronizationContext()
-                            );
+                        SearchAlbums();
                     }
                     else if (type == "artist")
                     {
-                        loadingSpinner.IsVisible = true;
-                        loadingSpinner.IsRunning = true;
-                        albumsScrollLayout.IsVisible = false;
-                        songsView.IsVisible = false;
-                        albumsTopLeftLayout.Children.Clear();
-                        albumsTopRightLayout.Children.Clear();
-                        artistsTopLeftLayout.Children.Clear();
-                        artistsTopRightLayout.Children.Clear();
-                        songsView.Root.Clear(); 
-
-                        Task.Factory.StartNew(() => searchItem = _spotify.SearchItems(searchBar.Text, SearchType.Artist, 50))
-                            .ContinueWith(antecendent =>
-                            {
-                                foreach (FullArtist artist in searchItem.Artists.Items)
-                                {
-                                    artistIndex++;
-                                    if (artist.Images.Count > 0)
-                                    {
-                                        UpdateArtistList(artist, artist.Images[0].Url, artist.Name);
-                                    }
-                                    else
-                                    {
-                                        UpdateArtistList(artist, "Icon.png", artist.Name);
-                                    }
-                                }
-                                    loadingSpinner.IsVisible = false;
-                                    loadingSpinner.IsRunning = false;
-                                    artistsScrollLayout.IsVisible = true;
-                            },
-                            TaskScheduler.FromCurrentSynchronizationContext()
-                            );
+                        SearchArtists();
                     }
                 })
             };
-            searchTypes = new List<string>
-            {
-                "Tracks", "Albums", "Artists"
-            };
+
+            // Picker
+            searchTypes = new List<string>{"Tracks", "Albums", "Artists" };
             resultsTypePicker = new Picker
             {
                 Title = " Results Type",
                 TextColor = Color.White,
-                ItemsSource = searchTypes
+                ItemsSource = searchTypes,
+                SelectedItem = searchTypes[0],
             };
             resultsTypePicker.SelectedIndexChanged += (sender, args) =>
             {
@@ -216,17 +122,35 @@ namespace TuneTaster
                     type = "artist";
                 }
             };
+
+            // Header.
+            header = new StackLayout
+            {
+                Orientation = StackOrientation.Horizontal,
+                VerticalOptions = LayoutOptions.Start,
+                BackgroundColor = Color.FromHex("3F51B5"),
+                Padding = new Thickness(0, 5, 0, 5),
+                Children = {
+                    searchBar,
+                    resultsTypePicker,
+                    
+                }
+            };
+
+
+
+
+            // --- Main Content --- //
+            // Loading Spinner.
             loadingSpinner = new ActivityIndicator()
             {
                 VerticalOptions = LayoutOptions.CenterAndExpand,
                 IsVisible = false,
                 IsRunning = false,
-                Color = Color.FromHex("FFAB40"),
+                Color = Color.FromHex("FF5252"),
             };
 
-
-
-            // --- Main Content --- //
+            // Songs.
             songsView = new TableView
             {
                 RowHeight = 70,
@@ -234,42 +158,49 @@ namespace TuneTaster
                 IsVisible = false,
             };
 
+            // Albums.
             albumsTopLeftLayout = new StackLayout { };
             albumsTopRightLayout = new StackLayout { };
-            albumsGridLayout = new Grid
-            {
-                BackgroundColor = Color.FromHex("f2f2f2"),
-                Padding = new Thickness(7, 12, 7, 0),
-            };
+            albumsGridLayout = new Grid{ };
             albumsGridLayout.Children.Add(albumsTopLeftLayout, 0, 0); // Top left
             albumsGridLayout.Children.Add(albumsTopRightLayout, 1, 0); // Top right
             albumsScrollLayout = new Xamarin.Forms.ScrollView
             {
+                IsVisible = false,
+                Padding = new Thickness(7, 12, 7, 12),
                 Content = albumsGridLayout,
-                IsVisible = false
             };
 
+            // Artists.
             artistsTopLeftLayout = new StackLayout { };
             artistsTopRightLayout = new StackLayout { };
-            artistsGridLayout = new Grid
-            {
-                BackgroundColor = Color.FromHex("f2f2f2"),
-                Padding = new Thickness(7, 12, 7, 0),
-            };
+            artistsGridLayout = new Grid{ };
             artistsGridLayout.Children.Add(artistsTopLeftLayout, 0, 0); // Top left
             artistsGridLayout.Children.Add(artistsTopRightLayout, 1, 0); // Top right
             artistsScrollLayout = new Xamarin.Forms.ScrollView
             {
+                IsVisible = false,          
+                Padding = new Thickness(7, 12, 7, 0),
                 Content = artistsGridLayout,
-                IsVisible = false
             };
 
-
+            // Main.
+            main = new StackLayout
+            {
+                VerticalOptions = LayoutOptions.FillAndExpand,
+                BackgroundColor = Color.FromHex("f2f2f2"),
+                Children = {
+                    loadingSpinner,
+                    songsView,
+                    albumsScrollLayout,
+                    artistsScrollLayout,
+                }
+            };
 
 
             // --- Footer Content --- //
             trackAlbumImage = new Xamarin.Forms.Image{};
-            trackName = new Label{TextColor = Color.Black };
+            trackName = new Label{TextColor = Color.White };
             trackArtist = new Label{TextColor = Color.White};
             playOrPause = new Xamarin.Forms.Image{Source = "pause.png" };
 
@@ -289,19 +220,29 @@ namespace TuneTaster
                     footerTrackDetailsLayout
                 }
             };
-            footerBarLayout = new Grid
-            {
-                VerticalOptions = LayoutOptions.FillAndExpand,
-                BackgroundColor = Color.FromHex("4FC3F7"),
-                Padding = new Thickness(4, 6, 4, 6),
-            };
+            footerBarLayout = new Grid{ };
             footerBarLayout.Children.Add(footerTrackDetailsAndImageLayout, 0, 0);
             footerBarLayout.Children.Add(new BoxView {}, 1, 0);
             footerBarLayout.Children.Add(new BoxView {}, 2, 0);
             footerBarLayout.Children.Add(playOrPause, 3, 0);
             Grid.SetColumnSpan(footerTrackDetailsAndImageLayout, 3);
 
-            var tapGestureRecognizer = new TapGestureRecognizer();
+            // Footer.
+            footer = new StackLayout
+            {
+                VerticalOptions = LayoutOptions.End,
+                HeightRequest = 70,
+                IsVisible = false,            
+                BackgroundColor = Color.FromHex("5C6BC0"),
+                Padding = new Thickness(4, 6, 4, 6),
+                Children = {
+                    footerBarLayout
+                }
+            };
+
+
+            // --- Non Content actions. --- //
+            tapGestureRecognizer = new TapGestureRecognizer();
             tapGestureRecognizer.Tapped += (s, e) => {
                 if (player.IsPlaying)
                 {
@@ -316,38 +257,18 @@ namespace TuneTaster
             };
             playOrPause.GestureRecognizers.Add(tapGestureRecognizer);
 
-
-
-
-
-
-            header = new StackLayout
+            SizeChanged += (sender, e) =>
             {
-                BackgroundColor = Color.FromHex("03A9F4"),
-                Padding = new Thickness(0, 5, 0, 5),
-                Children = {
-                    resultsTypePicker,
-                    searchBar,
+                if (this.Width > this.Height)
+                {
+                    footer.HeightRequest = 110;
+                }
+                else if (this.Width < this.Height)
+                {
+                    footer.HeightRequest = 70;
                 }
             };
-            main = new StackLayout
-            {
-                VerticalOptions = LayoutOptions.FillAndExpand,
-                Children = {
-                    loadingSpinner,
-                    songsView,
-                    albumsScrollLayout,
-                    artistsScrollLayout,
-                }
-            };
-            footer = new StackLayout
-            {
-                IsVisible = false,
-                HeightRequest = 70,
-                Children = {
-                    footerBarLayout
-                }
-            };
+
 
             // --- Build Page --- //
             Content = new StackLayout
@@ -361,6 +282,58 @@ namespace TuneTaster
             };
         }
 
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public void SearchTracks()
+        {
+            loadingSpinner.IsVisible = true;
+            loadingSpinner.IsRunning = true;
+            albumsScrollLayout.IsVisible = false;
+            artistsScrollLayout.IsVisible = false;
+            artistsTopLeftLayout.Children.Clear();
+            artistsTopRightLayout.Children.Clear();
+            albumsTopLeftLayout.Children.Clear();
+            albumsTopRightLayout.Children.Clear();
+            songsView.Root.Clear();
+
+            Task.Factory.StartNew(() => searchItem = _spotify.SearchItems(searchBar.Text, SearchType.Track, 50))
+                .ContinueWith(antecendent =>
+                {
+                    if (searchItem.Tracks.Total == 0)
+                    {
+                        if (noresultsToast != null)
+                        {
+                            noresultsToast.Cancel();
+                        }
+                        noresultsToast = Toast.MakeText(Android.App.Application.Context, "No results!", ToastLength.Long);
+                        noresultsToast.SetGravity(Android.Views.GravityFlags.Center, 0, 0);
+                        noresultsToast.Show();
+                        loadingSpinner.IsVisible = false;
+                        loadingSpinner.IsRunning = false;
+                    }
+                    else
+                    {
+                        foreach (FullTrack track in searchItem.Tracks.Items)
+                        {
+                            if (track.Album.Images.Count > 0)
+                            {
+                                UpdateSongList(track.Album.Images[0].Url, track.Name, track.Artists[0].Name, track.PreviewUrl);
+                            }
+                            else
+                            {
+                                UpdateSongList("missingTrack.png", track.Name, track.Artists[0].Name, track.PreviewUrl);
+                            }
+                        }
+                        loadingSpinner.IsVisible = false;
+                        loadingSpinner.IsRunning = false;
+                        songsView.IsVisible = true;
+                    }
+                },
+                TaskScheduler.FromCurrentSynchronizationContext()
+                );
+        }
 
 
         /// <summary>
@@ -379,7 +352,7 @@ namespace TuneTaster
                     ImageSource = trackImageSource,
                     Text = trackName,
                     Detail = trackArtist,
-                    TextColor = Color.FromHex("4FC3F7"),
+                    TextColor = Color.FromHex("FF5252"),
                     Command = new Command(() =>
                     {
                         UpdateFooterSong(trackImageSource, trackName, trackArtist);
@@ -402,13 +375,13 @@ namespace TuneTaster
                         }
                         else
                         {
-                            if (previewToast != null)
+                            if (noPreviewToast != null)
                             {
-                                previewToast.Cancel();
+                                noPreviewToast.Cancel();
                             }
-                            previewToast = Toast.MakeText(Android.App.Application.Context, "No preview avaiable!", ToastLength.Short);
-                            previewToast.SetGravity(Android.Views.GravityFlags.Center, 0, 0);
-                            previewToast.Show();               
+                            noPreviewToast = Toast.MakeText(Android.App.Application.Context, "No preview avaiable!", ToastLength.Short);
+                            noPreviewToast.SetGravity(Android.Views.GravityFlags.Center, 0, 0);
+                            noPreviewToast.Show();               
                         }
                         
                     })
@@ -419,6 +392,58 @@ namespace TuneTaster
 
 
 
+
+
+
+        public void SearchAlbums()
+        {
+            loadingSpinner.IsVisible = true;
+            loadingSpinner.IsRunning = true;
+            artistsScrollLayout.IsVisible = false;
+            songsView.IsVisible = false;
+            albumsTopLeftLayout.Children.Clear();
+            albumsTopRightLayout.Children.Clear();
+            artistsTopLeftLayout.Children.Clear();
+            artistsTopRightLayout.Children.Clear();
+            songsView.Root.Clear();
+
+            Task.Factory.StartNew(() => searchItem = _spotify.SearchItems(searchBar.Text, SearchType.Album, 50))
+                .ContinueWith(antecendent =>
+                {
+                    if (searchItem.Albums.Total == 0)
+                    {
+                        if (noresultsToast != null)
+                        {
+                            noresultsToast.Cancel();
+                        }
+                        noresultsToast = Toast.MakeText(Android.App.Application.Context, "No results!", ToastLength.Long);
+                        noresultsToast.SetGravity(Android.Views.GravityFlags.Center, 0, 0);
+                        noresultsToast.Show();
+                        loadingSpinner.IsVisible = false;
+                        loadingSpinner.IsRunning = false;
+                    }
+                    else
+                    {
+                        foreach (SimpleAlbum album in searchItem.Albums.Items)
+                        {
+                            albumIndex++;
+                            if (album.Images.Count > 0)
+                            {
+                                UpdateAlbumList(album, album.Images[0].Url, album.Name, album.Type);
+                            }
+                            else
+                            {
+                                UpdateAlbumList(album, "missingAlbum.png", album.Name, album.Type);
+                            }
+                        }
+                        loadingSpinner.IsVisible = false;
+                        loadingSpinner.IsRunning = false;
+                        albumsScrollLayout.IsVisible = true;
+                    }
+                },
+                TaskScheduler.FromCurrentSynchronizationContext()
+                );
+        }
 
         /// <summary>
         /// 
@@ -485,6 +510,60 @@ namespace TuneTaster
             }
         }
 
+
+
+
+
+
+        public void SearchArtists()
+        {
+            loadingSpinner.IsVisible = true;
+            loadingSpinner.IsRunning = true;
+            albumsScrollLayout.IsVisible = false;
+            songsView.IsVisible = false;
+            albumsTopLeftLayout.Children.Clear();
+            albumsTopRightLayout.Children.Clear();
+            artistsTopLeftLayout.Children.Clear();
+            artistsTopRightLayout.Children.Clear();
+            songsView.Root.Clear();
+
+            Task.Factory.StartNew(() => searchItem = _spotify.SearchItems(searchBar.Text, SearchType.Artist, 50))
+                .ContinueWith(antecendent =>
+                {
+                    if (searchItem.Artists.Total == 0)
+                    {
+                        if (noresultsToast != null)
+                        {
+                            noresultsToast.Cancel();
+                        }
+                        noresultsToast = Toast.MakeText(Android.App.Application.Context, "No results!", ToastLength.Long);
+                        noresultsToast.SetGravity(Android.Views.GravityFlags.Center, 0, 0);
+                        noresultsToast.Show();
+                        loadingSpinner.IsVisible = false;
+                        loadingSpinner.IsRunning = false;
+                    }
+                    else
+                    {
+                        foreach (FullArtist artist in searchItem.Artists.Items)
+                        {
+                            artistIndex++;
+                            if (artist.Images.Count > 0)
+                            {
+                                UpdateArtistList(artist, artist.Images[0].Url, artist.Name);
+                            }
+                            else
+                            {
+                                UpdateArtistList(artist, "missingArtist.png", artist.Name);
+                            }
+                        }
+                        loadingSpinner.IsVisible = false;
+                        loadingSpinner.IsRunning = false;
+                        artistsScrollLayout.IsVisible = true;
+                    }
+                },
+                TaskScheduler.FromCurrentSynchronizationContext()
+                );
+        }
 
 
         /// <summary>

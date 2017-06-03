@@ -11,6 +11,10 @@ namespace TuneTaster
     {
         public App()
         {
+            // Limit theading amounts for loading large amounts of data (especially album images).
+            System.Threading.ThreadPool.SetMinThreads(70, 70);
+            System.Threading.ThreadPool.SetMaxThreads(100, 100);
+
             // Start the MainPage.
             MainPage = new MainPage();
         }

@@ -9,10 +9,7 @@
     <Import_RootNamespace>TuneTaster</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="$(MSBuildThisFileDirectory)AlbumsPage.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)App.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ArtistsPage.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MainPage.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)SongsPage.cs" />
   </ItemGroup>
 </Project>

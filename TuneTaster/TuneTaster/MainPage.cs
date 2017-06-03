@@ -33,7 +33,7 @@ namespace TuneTaster
         Picker resultsTypePicker;
         SearchBar searchBar;
         List<string> searchTypes;
-        string type;
+        string type = "track";
         ActivityIndicator loadingSpinner;
         StackLayout header;
 
@@ -68,6 +68,7 @@ namespace TuneTaster
         MediaPlayer player;
 
         // Extras
+        bool searchQueryTriggered;
         int albumIndex = 1;
         int artistIndex = 1;
         Toast noPreviewToast;
@@ -82,7 +83,7 @@ namespace TuneTaster
             searchBar = new SearchBar
             {
                 WidthRequest = 295,
-                Placeholder = "Search Songs",
+                Placeholder = "Search...",
                 TextColor = Color.White,
                 PlaceholderColor = Color.White,
                 CancelButtonColor = Color.White,
@@ -103,13 +104,13 @@ namespace TuneTaster
             };
 
             // Picker
-            searchTypes = new List<string>{"Tracks", "Albums", "Artists" };
+            searchTypes = new List<string> { "Tracks", "Albums", "Artists" };
             resultsTypePicker = new Picker
             {
                 Title = " Results Type",
                 TextColor = Color.White,
                 ItemsSource = searchTypes,
-                SelectedItem = searchTypes[0],
+                SelectedItem = searchTypes[0]
             };
             resultsTypePicker.SelectedIndexChanged += (sender, args) =>
             {
@@ -129,10 +130,10 @@ namespace TuneTaster
 
             // Header.
             header = new StackLayout
-            {
+            {    
                 VerticalOptions = LayoutOptions.Start,
                 Orientation = StackOrientation.Horizontal,
-                BackgroundColor = Color.FromHex("3f51b5"),
+                BackgroundColor = Color.FromHex("3F51B5"),
                 Padding = new Thickness(0, 5, 0, 5),
                 Children = {
                     searchBar,
@@ -150,7 +151,7 @@ namespace TuneTaster
                 VerticalOptions = LayoutOptions.CenterAndExpand,
                 IsVisible = false,
                 IsRunning = false,
-                Color = Color.FromHex("fe5252"),
+                Color = Color.FromHex("FE5252"),
             };
 
             // Songs.
@@ -164,7 +165,7 @@ namespace TuneTaster
             // Albums.
             albumsTopLeftLayout = new StackLayout { };
             albumsTopRightLayout = new StackLayout { };
-            albumsGridLayout = new Grid{ };
+            albumsGridLayout = new Grid { };
             albumsGridLayout.Children.Add(albumsTopLeftLayout, 0, 0); // Top left
             albumsGridLayout.Children.Add(albumsTopRightLayout, 1, 0); // Top right
             albumsScrollLayout = new Xamarin.Forms.ScrollView
@@ -177,12 +178,12 @@ namespace TuneTaster
             // Artists.
             artistsTopLeftLayout = new StackLayout { };
             artistsTopRightLayout = new StackLayout { };
-            artistsGridLayout = new Grid{ };
+            artistsGridLayout = new Grid { };
             artistsGridLayout.Children.Add(artistsTopLeftLayout, 0, 0); // Top left
             artistsGridLayout.Children.Add(artistsTopRightLayout, 1, 0); // Top right
             artistsScrollLayout = new Xamarin.Forms.ScrollView
             {
-                IsVisible = false,          
+                IsVisible = false,
                 Padding = new Thickness(7, 12, 7, 12),
                 Content = artistsGridLayout,
             };
@@ -190,6 +191,7 @@ namespace TuneTaster
             // Main.
             main = new StackLayout
             {
+                IsClippedToBounds = true,
                 VerticalOptions = LayoutOptions.FillAndExpand,
                 BackgroundColor = Color.FromHex("f2f2f2"),
                 Children = {
@@ -202,10 +204,10 @@ namespace TuneTaster
 
 
             // --- Footer Content --- //
-            trackAlbumImage = new Xamarin.Forms.Image{};
-            trackName = new Label{TextColor = Color.FromHex("FEFEFE")};
-            trackArtist = new Label{TextColor = Color.FromHex("3f51b4") };
-            playOrPause = new Xamarin.Forms.Image{Source = "pause.png"};
+            trackAlbumImage = new Xamarin.Forms.Image { };
+            trackName = new Label { TextColor = Color.FromHex("FEFEFE") };
+            trackArtist = new Label { TextColor = Color.FromHex("3f51b4") };
+            playOrPause = new Xamarin.Forms.Image { Source = "pause.png" };
 
             footerTrackDetailsLayout = new StackLayout
             {
@@ -223,10 +225,10 @@ namespace TuneTaster
                     footerTrackDetailsLayout
                 }
             };
-            footerBarLayout = new Grid{ };
+            footerBarLayout = new Grid { };
             footerBarLayout.Children.Add(footerTrackDetailsAndImageLayout, 0, 0);
-            footerBarLayout.Children.Add(new BoxView {}, 1, 0);
-            footerBarLayout.Children.Add(new BoxView {}, 2, 0);
+            footerBarLayout.Children.Add(new BoxView { }, 1, 0);
+            footerBarLayout.Children.Add(new BoxView { }, 2, 0);
             footerBarLayout.Children.Add(playOrPause, 3, 0);
             Grid.SetColumnSpan(footerTrackDetailsAndImageLayout, 3);
 
@@ -279,6 +281,7 @@ namespace TuneTaster
         /// </summary>
         public void SearchTracks()
         {
+            searchQueryTriggered = true;
             loadingSpinner.IsVisible = true;
             loadingSpinner.IsRunning = true;
             albumsScrollLayout.IsVisible = false;
@@ -330,23 +333,23 @@ namespace TuneTaster
 
         public void SearchAlbumsTracks(SimpleAlbum album)
         {
+            searchQueryTriggered = false;
             loadingSpinner.IsVisible = true;
             loadingSpinner.IsRunning = true;
             albumsScrollLayout.IsVisible = false;
             artistsScrollLayout.IsVisible = false;
-            songsView.IsVisible = true;
             songsView.Root.Clear();
-            
+
             Task.Factory.StartNew(() => albumsTracks = _spotify.GetAlbumTracks(album.Id))
                 .ContinueWith(antecendent =>
                 {
-                        foreach (var track in albumsTracks.Items)
-                        {
-                            UpdateTrackList(album.Images[1].Url, track.Name, track.Artists[0].Name, track.PreviewUrl);
-                        }
-                        loadingSpinner.IsVisible = false;
-                        loadingSpinner.IsRunning = false;
-                        songsView.IsVisible = true;
+                    foreach (var track in albumsTracks.Items)
+                    {
+                        UpdateTrackList(album.Images[1].Url, track.Name, track.Artists[0].Name, track.PreviewUrl);
+                    }
+                    loadingSpinner.IsVisible = false;
+                    loadingSpinner.IsRunning = false;
+                    songsView.IsVisible = true;
                 },
                 TaskScheduler.FromCurrentSynchronizationContext()
                 );
@@ -371,12 +374,12 @@ namespace TuneTaster
                     Text = trackName,
                     Detail = trackArtist,
                     TextColor = Color.FromHex("212121"),
-                    DetailColor = Color.FromHex("BDBDBD"),
+                    DetailColor = Color.FromHex("757575"),
                     Command = new Command(() =>
                     {
                         UpdateFooterSong(trackImageSource, trackName, trackArtist);
-                        albumsScrollLayout.HeightRequest = 497;
-                        artistsScrollLayout.HeightRequest = 497;
+                        albumsScrollLayout.HeightRequest = 405; // This fixes issue where footer is pushed down on albums page
+                        artistsScrollLayout.HeightRequest = 405; // This fixes issue where footer is pushed down on artists page
                         playOrPause.Source = "pause.png";
                         if (player == null)
                         {
@@ -402,9 +405,9 @@ namespace TuneTaster
                             }
                             noPreviewToast = Toast.MakeText(Android.App.Application.Context, "No preview avaiable!", ToastLength.Short);
                             noPreviewToast.SetGravity(Android.Views.GravityFlags.Center, 0, 0);
-                            noPreviewToast.Show();               
+                            noPreviewToast.Show();
                         }
-                        
+
                     })
                 }
             }
@@ -420,6 +423,7 @@ namespace TuneTaster
         /// </summary>
         public void SearchAlbums()
         {
+            searchQueryTriggered = true;
             loadingSpinner.IsVisible = true;
             loadingSpinner.IsRunning = true;
             artistsScrollLayout.IsVisible = false;
@@ -430,7 +434,7 @@ namespace TuneTaster
             artistsTopRightLayout.Children.Clear();
             songsView.Root.Clear();
 
-            Task.Factory.StartNew(() => searchItem = _spotify.SearchItems(searchBar.Text, SearchType.Album, 30))
+            Task.Factory.StartNew(() => searchItem = _spotify.SearchItems(searchBar.Text, SearchType.Album, 20))
                 .ContinueWith(antecendent =>
                 {
                     if (searchItem.Albums.Total == 0)
@@ -476,12 +480,14 @@ namespace TuneTaster
         /// </summary>
         public void SearchArtistsAlbums(FullArtist artist)
         {
+            searchQueryTriggered = false;
             loadingSpinner.IsVisible = true;
             loadingSpinner.IsRunning = true;
             artistsScrollLayout.IsVisible = false;
             songsView.IsVisible = false;
             albumsTopLeftLayout.Children.Clear();
             albumsTopRightLayout.Children.Clear();
+            songsView.Root.Clear();
             albumIndex = 1;
 
             Task.Factory.StartNew(() => artistsAlbums = _spotify.GetArtistsAlbums(artist.Id))
@@ -500,7 +506,7 @@ namespace TuneTaster
                 );
         }
 
-  
+
 
         /// <summary>
         /// 
@@ -513,7 +519,7 @@ namespace TuneTaster
         {
             albumFrame = new Frame
             {
-                HeightRequest = 220,
+                HeightRequest = 222,
                 Padding = 0,
                 GestureRecognizers = {
                     new TapGestureRecognizer {
@@ -528,15 +534,15 @@ namespace TuneTaster
                         new Xamarin.Forms.Image
                         {
                             VerticalOptions = LayoutOptions.FillAndExpand,
-                            HorizontalOptions = LayoutOptions.FillAndExpand,
                             Source = albumImageSource,
                         },
                         new Label
                         {
                             Text = albumName,
+                            FontSize = 12,
                             TextColor = Color.FromHex("212121"),
-                            Margin = new Thickness (5, 0, 0, 4),
-                            HeightRequest = 20
+                            Margin = new Thickness (7, 0, 0, 4),
+                            HeightRequest = 30
                         },
                     }
                 }
@@ -560,6 +566,7 @@ namespace TuneTaster
         /// </summary>
         public void SearchArtists()
         {
+            searchQueryTriggered = true;
             loadingSpinner.IsVisible = true;
             loadingSpinner.IsRunning = true;
             albumsScrollLayout.IsVisible = false;
@@ -570,7 +577,7 @@ namespace TuneTaster
             artistsTopRightLayout.Children.Clear();
             songsView.Root.Clear();
 
-            Task.Factory.StartNew(() => searchItem = _spotify.SearchItems(searchBar.Text, SearchType.Artist, 30))
+            Task.Factory.StartNew(() => searchItem = _spotify.SearchItems(searchBar.Text, SearchType.Artist, 20))
                 .ContinueWith(antecendent =>
                 {
                     if (searchItem.Artists.Total == 0)
@@ -620,12 +627,12 @@ namespace TuneTaster
             var artistPopularityString = artistPopularity.ToString();
             artistFrame = new Frame
             {
-                HeightRequest = 250,
+                HeightRequest = 224,
                 Padding = 0,
                 GestureRecognizers = {
                     new TapGestureRecognizer {
                         Command = new Command(() => {
-                            SearchArtistsAlbums(artist);       
+                            SearchArtistsAlbums(artist);
                         })
                     },
                 },
@@ -635,23 +642,23 @@ namespace TuneTaster
                         new Xamarin.Forms.Image
                         {
                             VerticalOptions = LayoutOptions.FillAndExpand,
-                            HorizontalOptions = LayoutOptions.FillAndExpand,
                             Source = artistImageSource,
                         },
                         new Label
                         {
                             Text = artistName,
+                            FontSize = 12,
                             TextColor = Color.FromHex("212121"),
-                            Margin = new Thickness (5, 0, 0, 0),
+                            Margin = new Thickness (5, -3, 0, 0),
                             HeightRequest = 18
                         },
                         new Label
                         {
                             Text = "Popularity: " + artistPopularityString,
-                            TextColor = Color.FromHex("BDBDBD"),
-                            FontSize = 11,
-                            Margin = new Thickness (5, 0, 0, 0),
-                            HeightRequest = 18
+                            TextColor = Color.FromHex("757575"),
+                            FontSize = 10,
+                            Margin = new Thickness (5, -3, 0, 4),
+                            HeightRequest = 14
                         }
                     }
                 }
@@ -693,16 +700,19 @@ namespace TuneTaster
         /// <returns>Prevents the app from closing.</returns>
         protected override bool OnBackButtonPressed()
         {
-            if (songsView.IsVisible == true)
+            if (searchQueryTriggered == false)
             {
-                albumsScrollLayout.IsVisible = true;
-                songsView.IsVisible = false;
-            }
+                if (songsView.IsVisible == true)
+                {
+                    albumsScrollLayout.IsVisible = true;
+                    songsView.IsVisible = false;
+                }
 
-            else if (albumsScrollLayout.IsVisible == true)
-            {
-                artistsScrollLayout.IsVisible = true;
-                albumsScrollLayout.IsVisible = false;
+                else if (albumsScrollLayout.IsVisible == true)
+                {
+                    artistsScrollLayout.IsVisible = true;
+                    albumsScrollLayout.IsVisible = false;
+                }
             }
             return true;
         }

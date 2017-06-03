@@ -4,10 +4,6 @@
 	<uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
 	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
   <application
-    android:label="TuneTaster.Android"
-    android:allowBackup="true"
-    android:hardwareAccelerated="false"
-    android:largeHeap="true"
-    android:supportsRtl="true">
+    android:label="TuneTaster.Android">
   </application>
 </manifest>

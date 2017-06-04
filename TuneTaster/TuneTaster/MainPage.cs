@@ -239,12 +239,11 @@ namespace TuneTaster
             footerBarLayout.Children.Add(trackLoadingSpinner, 3, 0);
             Grid.SetColumnSpan(footerTrackDetailsAndImageLayout, 3);
 
-
             // Footer.
             footer = new StackLayout
             {
                 VerticalOptions = LayoutOptions.End,
-                HeightRequest = 70,
+                HeightRequest = 65,
                 BackgroundColor = Color.FromHex("7986CB"),
                 Padding = new Thickness(4, 6, 4, 6),
                 IsVisible = false,
@@ -289,11 +288,8 @@ namespace TuneTaster
         }
 
 
-
-
-
         /// <summary>
-        /// 
+        /// Clears all views that may have been showing and starts a search task that will call the Spotify API in the background as the loader icon spins for the user.
         /// </summary>
         public void SearchTracks()
         {
@@ -346,11 +342,10 @@ namespace TuneTaster
         }
 
 
-
         /// <summary>
-        /// 
+        /// Grabs all the tracks from the album the user just selected.
         /// </summary>
-        /// <param name="album"></param>
+        /// <param name="album">The album the user just selected, passed in so I can grab the cover art.</param>
         public void SearchAlbumsTracks(SimpleAlbum album)
         {
             shouldUserGoBack = true;
@@ -376,12 +371,14 @@ namespace TuneTaster
         }
 
 
-
         /// <summary>
-        /// When the user types something into the keyboard and presses search this function is called. The Spotify API is called 
-        /// and only told to display tracks. For every song that is returned from Spotify(50), a new ImageCell will be created
+        /// The Spotify API is called and only told to display 50 tracks. For every song that is returned from Spotify, a new ImageCell will be created
         /// displaying the track's name, album name, and album cover image.
         /// </summary>
+        /// <param name="trackImageSource">The track's album art.</param>
+        /// <param name="trackName">Name of the track.</param>
+        /// <param name="trackArtist">The artist that sings the track.</param>
+        /// <param name="trackPreviewUrl">The 30 sec preview url that will get played when the user selects the track.</param>
         public void UpdateTrackList(ImageSource trackImageSource, string trackName, string trackArtist, string trackPreviewUrl)
         {
             songsView.Root.Add(
@@ -397,10 +394,7 @@ namespace TuneTaster
                     DetailColor = Color.FromHex("757575"),
                     Command = new Command(() =>
                     {
-                        UpdateFooterSong(trackImageSource, trackName, trackArtist);
-                        //albumsScrollLayout.HeightRequest = 405; // This fixes issue where footer is pushed down on albums page
-                        //artistsScrollLayout.HeightRequest = 405; // This fixes issue where footer is pushed down on artists page
-                        //playOrPause.Source = "pause.png";
+                        UpdateFooterSong(trackImageSource, trackName, trackArtist); // Pass the data from the selected image cell to the update footer method.
                         if (player == null)
                         {
                             player = new MediaPlayer();
@@ -442,11 +436,8 @@ namespace TuneTaster
         }
 
 
-
-
-
         /// <summary>
-        /// 
+        /// Clears all views that may have been showing and starts a search task that will call the Spotify API in the background as the loader icon spins for the user.
         /// </summary>
         public void SearchAlbums()
         {
@@ -500,11 +491,10 @@ namespace TuneTaster
         }
 
 
-
-
         /// <summary>
-        /// 
+        /// Grabs all the albums from the artist the user just selected.
         /// </summary>
+        /// <param name="artist">The individual artist.</param>
         public void SearchArtistsAlbums(FullArtist artist)
         {
             shouldUserGoBack = true;
@@ -534,14 +524,12 @@ namespace TuneTaster
         }
 
 
-
         /// <summary>
-        /// 
+        /// The spotify API is called, limiting only 20 results, and creating new Frame views within a stack layout.
         /// </summary>
-        /// <param name="album"></param>
-        /// <param name="albumImageSource"></param>
-        /// <param name="albumName"></param>
-        /// <param name="albumType"></param>
+        /// <param name="album">A singular album.</param>
+        /// <param name="albumImageSource">The source of the album's art.</param>
+        /// <param name="albumName">The name of the album.</param>
         public void UpdateAlbumList(SimpleAlbum album, ImageSource albumImageSource, string albumName)
         {
             albumFrame = new Frame
@@ -577,10 +565,12 @@ namespace TuneTaster
                     }
                 }
             };
+            // Places the Frame to the left. (if the index is an even number)
             if (albumIndex % 2 == 0)
             {
                 albumsTopLeftLayout.Children.Add(albumFrame);
             }
+            // Places the Frame to the right. (if the index is an odd number)
             else
             {
                 albumsTopRightLayout.Children.Add(albumFrame);
@@ -588,11 +578,8 @@ namespace TuneTaster
         }
 
 
-
-
-
         /// <summary>
-        /// 
+        /// Clears all views that may have been showing and starts a search task that will call the Spotify API in the background as the loader icon spins for the user.
         /// </summary>
         public void SearchArtists()
         {
@@ -647,11 +634,11 @@ namespace TuneTaster
 
 
         /// <summary>
-        /// 
+        /// Similar to updating albums, the spotify API is called, limiting only 20 results, and creating new Frame views within a stack layout.
         /// </summary>
-        /// <param name="artist"></param>
-        /// <param name="artistImageSource"></param>
-        /// <param name="artistName"></param>
+        /// <param name="artist">The artist.</param>
+        /// <param name="artistImageSource">The artist's image url.</param>
+        /// <param name="artistName"> The name of the artist.</param>
         public void UpdateArtistList(FullArtist artist, ImageSource artistImageSource, string artistName, int artistPopularity)
         {
             var artistPopularityString = artistPopularity.ToString();
@@ -696,17 +683,17 @@ namespace TuneTaster
                     }
                 }
             };
+            // Places the Frame to the left. (if the index is an even number)
             if (artistIndex % 2 == 0)
             {
                 artistsTopLeftLayout.Children.Add(artistFrame);
             }
+            // Places the Frame to the right. (if the index is an odd number)
             else
             {
                 artistsTopRightLayout.Children.Add(artistFrame);
             }
         }
-
-
 
 
         /// <summary>
@@ -725,10 +712,9 @@ namespace TuneTaster
         }
 
 
-
         /// <summary>
-        /// If the user is has selected an album and wants to return, this will override the default Android back button behaviour to show the 
-        /// list of albums.
+        /// If the user searches an album or artist and keeps selecting information they will be able to step out if they press the Android device's 
+        /// physical back button. However, if they search something and press the back button, nothing will happen.
         /// </summary>
         /// <returns>Prevents the app from closing.</returns>
         protected override bool OnBackButtonPressed()

@@ -6,6 +6,7 @@ using SpotifyAPI.Web.Enums;
 using SpotifyAPI.Web.Models;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Xamarin.Forms;
@@ -69,9 +70,10 @@ namespace TuneTaster
         protected MediaPlayer player;
 
         // Extras
-        bool shouldUserGoBack;
-        int albumIndex = 1;
-        int artistIndex = 1;
+        bool userSearchedAlbums;
+        bool userSearchedArtists;
+        int albumIndex;
+        int artistIndex;
         Toast noPreviewToast;
         Toast noresultsToast;
         TapGestureRecognizer tapGestureRecognizer;
@@ -83,7 +85,7 @@ namespace TuneTaster
             // Search Bar.
             searchBar = new SearchBar
             {
-                WidthRequest = 295,
+                WidthRequest = 275,
                 Placeholder = "Search...",
                 TextColor = Color.White,
                 PlaceholderColor = Color.White,
@@ -293,7 +295,8 @@ namespace TuneTaster
         /// </summary>
         public void SearchTracks()
         {
-            shouldUserGoBack = false;
+            userSearchedAlbums = false;
+            userSearchedArtists = false;
             searchLoadingSpinner.IsVisible = true;
             searchLoadingSpinner.IsRunning = true;
             albumsScrollLayout.IsVisible = false;
@@ -323,9 +326,10 @@ namespace TuneTaster
                     {
                         foreach (FullTrack track in searchItem.Tracks.Items)
                         {
-                            if (track.Album.Images.Count > 0)
+                            int imagesCount = track.Album.Images.Count;
+                            if (imagesCount > 0)
                             {
-                                UpdateTrackList(track.Album.Images[1].Url, track.Name, track.Artists[0].Name, track.PreviewUrl);
+                                UpdateTrackList(track.Album.Images[imagesCount/2].Url, track.Name, track.Artists[0].Name, track.PreviewUrl);
                             }
                             else
                             {
@@ -348,7 +352,6 @@ namespace TuneTaster
         /// <param name="album">The album the user just selected, passed in so I can grab the cover art.</param>
         public void SearchAlbumsTracks(SimpleAlbum album)
         {
-            shouldUserGoBack = true;
             searchLoadingSpinner.IsVisible = true;
             searchLoadingSpinner.IsRunning = true;
             albumsScrollLayout.IsVisible = false;
@@ -360,7 +363,8 @@ namespace TuneTaster
                 {
                     foreach (var track in albumsTracks.Items)
                     {
-                        UpdateTrackList(album.Images[1].Url, track.Name, track.Artists[0].Name, track.PreviewUrl);
+                        int imagesCount = album.Images.Count;
+                        UpdateTrackList(album.Images[imagesCount/2].Url, track.Name, track.Artists[0].Name, track.PreviewUrl);
                     }
                     searchLoadingSpinner.IsVisible = false;
                     searchLoadingSpinner.IsRunning = false;
@@ -398,7 +402,7 @@ namespace TuneTaster
                         if (player == null)
                         {
                             player = new MediaPlayer();
-                            player.SetAudioStreamType (Stream.Music);
+                            player.SetAudioStreamType (Android.Media.Stream.Music);
                         }
                         if (trackPreviewUrl != null)
                         {
@@ -441,7 +445,8 @@ namespace TuneTaster
         /// </summary>
         public void SearchAlbums()
         {
-            shouldUserGoBack = false;
+            userSearchedAlbums = true;
+            userSearchedArtists = false;
             searchLoadingSpinner.IsVisible = true;
             searchLoadingSpinner.IsRunning = true;
             artistsScrollLayout.IsVisible = false;
@@ -451,6 +456,7 @@ namespace TuneTaster
             artistsTopLeftLayout.Children.Clear();
             artistsTopRightLayout.Children.Clear();
             songsView.Root.Clear();
+            albumIndex = 1;
 
             Task.Factory.StartNew(() => searchItem = _spotify.SearchItems(searchBar.Text, SearchType.Album, 20))
                 .ContinueWith(antecendent =>
@@ -472,9 +478,10 @@ namespace TuneTaster
                         foreach (SimpleAlbum album in searchItem.Albums.Items)
                         {
                             albumIndex++;
-                            if (album.Images.Count > 0)
+                            var imagesCount = album.Images.Count;
+                            if (imagesCount > 0)
                             {
-                                UpdateAlbumList(album, album.Images[1].Url, album.Name);
+                                UpdateAlbumList(album, album.Images[imagesCount/2].Url, album.Name);
                             }
                             else
                             {
@@ -497,7 +504,6 @@ namespace TuneTaster
         /// <param name="artist">The individual artist.</param>
         public void SearchArtistsAlbums(FullArtist artist)
         {
-            shouldUserGoBack = true;
             searchLoadingSpinner.IsVisible = true;
             searchLoadingSpinner.IsRunning = true;
             artistsScrollLayout.IsVisible = false;
@@ -513,7 +519,8 @@ namespace TuneTaster
                     foreach (var album in artistsAlbums.Items)
                     {
                         albumIndex++;
-                        UpdateAlbumList(album, album.Images[1].Url, album.Name);
+                        var imagesCount = album.Images.Count;
+                        UpdateAlbumList(album, album.Images[imagesCount/2].Url, album.Name);
                     }
                     searchLoadingSpinner.IsVisible = false;
                     searchLoadingSpinner.IsRunning = false;
@@ -583,7 +590,8 @@ namespace TuneTaster
         /// </summary>
         public void SearchArtists()
         {
-            shouldUserGoBack = false;
+            userSearchedArtists = true;
+            userSearchedAlbums = false;
             searchLoadingSpinner.IsVisible = true;
             searchLoadingSpinner.IsRunning = true;
             albumsScrollLayout.IsVisible = false;
@@ -593,6 +601,7 @@ namespace TuneTaster
             artistsTopLeftLayout.Children.Clear();
             artistsTopRightLayout.Children.Clear();
             songsView.Root.Clear();
+            artistIndex = 1;
 
             Task.Factory.StartNew(() => searchItem = _spotify.SearchItems(searchBar.Text, SearchType.Artist, 20))
                 .ContinueWith(antecendent =>
@@ -614,9 +623,10 @@ namespace TuneTaster
                         foreach (FullArtist artist in searchItem.Artists.Items)
                         {
                             artistIndex++;
-                            if (artist.Images.Count > 0)
+                            int imagesCount = artist.Images.Count;
+                            if (imagesCount > 0)
                             {
-                                UpdateArtistList(artist, artist.Images[1].Url, artist.Name, artist.Popularity);
+                                UpdateArtistList(artist, artist.Images[imagesCount/2].Url, artist.Name, artist.Popularity);
                             }
                             else
                             {
@@ -718,23 +728,34 @@ namespace TuneTaster
         /// </summary>
         /// <returns>Prevents the app from closing.</returns>
         protected override bool OnBackButtonPressed()
-        {
-            if (shouldUserGoBack == true)
+        {        
+
+            // If the user has requested a search for an album.
+            if (userSearchedAlbums == true)
             {
                 if (songsView.IsVisible == true)
                 {
-                    shouldUserGoBack = false;
+                    albumsScrollLayout.IsVisible = true;
+                    songsView.IsVisible = false;
+                }
+            }
+
+            // If the user has requested a search for an artist.
+            else if (userSearchedArtists == true)
+            {
+                if (songsView.IsVisible == true)
+                {
                     albumsScrollLayout.IsVisible = true;
                     songsView.IsVisible = false;
                 }
 
                 else if (albumsScrollLayout.IsVisible == true)
                 {
-                    shouldUserGoBack = false;
                     artistsScrollLayout.IsVisible = true;
                     albumsScrollLayout.IsVisible = false;
                 }
             }
+
             return true;
         }
     }

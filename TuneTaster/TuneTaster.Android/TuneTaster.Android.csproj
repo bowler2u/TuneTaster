@@ -5,7 +5,7 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{434B3BA8-58F3-4DCB-B764-B3DA1D4F8FB9}</ProjectGuid>
+    <ProjectGuid>{8E7B938B-198D-4132-AABF-1F511851243B}</ProjectGuid>
     <ProjectTypeGuids>{EFBA0AD7-5A72-4C68-AF49-83D382785DCF};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
@@ -53,8 +53,18 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <AndroidUseSharedRuntime>False</AndroidUseSharedRuntime>
-    <AndroidLinkMode>SdkOnly</AndroidLinkMode>
+    <AndroidUseSharedRuntime>True</AndroidUseSharedRuntime>
+    <AndroidLinkMode>None</AndroidLinkMode>
+    <EmbedAssembliesIntoApk>True</EmbedAssembliesIntoApk>
+    <BundleAssemblies>False</BundleAssemblies>
+    <AndroidCreatePackagePerAbi>False</AndroidCreatePackagePerAbi>
+    <Debugger>.Net (Xamarin)</Debugger>
+    <AotAssemblies>False</AotAssemblies>
+    <EnableLLVM>False</EnableLLVM>
+    <AndroidEnableMultiDex>False</AndroidEnableMultiDex>
+    <EnableProguard>False</EnableProguard>
+    <DebugSymbols>False</DebugSymbols>
+    <AndroidSupportedAbis>armeabi-v7a;x86</AndroidSupportedAbis>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="FormsViewGroup, Version=2.0.0.0, Culture=neutral, processorArchitecture=MSIL">
@@ -66,15 +76,16 @@
       <HintPath>..\..\packages\Newtonsoft.Json.8.0.2\lib\portable-net40+sl5+wp80+win8+wpa81\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="SpotifyAPI, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\SpotifyAPI-NET.2.13.1\lib\SpotifyAPI.dll</HintPath>
+      <HintPath>..\..\packages\SpotifyAPI-NET.2.14.1\lib\SpotifyAPI.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing">
       <HintPath>..\..\..\..\..\..\Windows\Microsoft.NET\Framework\v4.0.30319\System.Drawing.dll</HintPath>
     </Reference>
+    <Reference Include="System.Net.Http" />
     <Reference Include="System.Web">
-      <HintPath>..\..\..\..\..\..\..\..\Windows\Microsoft.NET\Framework\v4.0.30319\System.Web.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\Windows\Microsoft.NET\Framework\v4.0.30319\System.Web.dll</HintPath>
     </Reference>
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Xml" />
@@ -128,9 +139,7 @@
     <None Include="Assets\AboutAssets.txt" />
   </ItemGroup>
   <ItemGroup>
-    <AndroidResource Include="Resources\layout\Tabbar.axml">
-      <SubType>Designer</SubType>
-    </AndroidResource>
+    <AndroidResource Include="Resources\layout\Tabbar.axml" />
     <AndroidResource Include="Resources\layout\Toolbar.axml" />
     <AndroidResource Include="Resources\values\styles.xml" />
   </ItemGroup>
@@ -141,16 +150,25 @@
     <AndroidResource Include="Resources\Drawable\Icon.png" />
   </ItemGroup>
   <ItemGroup>
-    <AndroidResource Include="Resources\Drawable\missingAlbum.png" />
+    <AndroidResource Include="Resources\Drawable\missingAlbum.jpg" />
   </ItemGroup>
   <ItemGroup>
-    <AndroidResource Include="Resources\Drawable\missingArtist.png" />
+    <AndroidResource Include="Resources\Drawable\missingArtist.jpg" />
   </ItemGroup>
   <ItemGroup>
-    <AndroidResource Include="Resources\Drawable\missingTrack.png" />
+    <AndroidResource Include="Resources\Drawable\missingTrack.jpg" />
   </ItemGroup>
   <ItemGroup>
     <AndroidResource Include="Resources\Drawable\splash_screen.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\Drawable\SplashLogo.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable-hdpi\icon.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable-hdpi\playOrPause.png" />
   </ItemGroup>
   <ItemGroup>
     <AndroidResource Include="Resources\drawable-ldpi\playOrPause.png" />
@@ -159,10 +177,13 @@
     <AndroidResource Include="Resources\drawable-mdpi\playOrPause.png" />
   </ItemGroup>
   <ItemGroup>
-    <AndroidResource Include="Resources\drawable-hdpi\playOrPause.png" />
+    <AndroidResource Include="Resources\drawable-xhdpi\icon.png" />
   </ItemGroup>
   <ItemGroup>
     <AndroidResource Include="Resources\drawable-xhdpi\playOrPause.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable-xxhdpi\icon.png" />
   </ItemGroup>
   <ItemGroup>
     <AndroidResource Include="Resources\drawable-xxhdpi\playOrPause.png" />

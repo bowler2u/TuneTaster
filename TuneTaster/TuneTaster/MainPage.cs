@@ -4,10 +4,7 @@ using SpotifyAPI.Web;
 using SpotifyAPI.Web.Auth;
 using SpotifyAPI.Web.Enums;
 using SpotifyAPI.Web.Models;
-using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 using Xamarin.Forms;
 
@@ -210,7 +207,7 @@ namespace TuneTaster
             trackAlbumImage = new Xamarin.Forms.Image { };
             trackName = new Label { TextColor = Color.FromHex("FEFEFE") };
             trackArtist = new Label { TextColor = Color.FromHex("3f51b4") };
-            playOrPause = new Xamarin.Forms.Image { Source = "playOrPause.png"};
+            playOrPause = new Xamarin.Forms.Image { Source = "playOrPause.png", VerticalOptions = LayoutOptions.FillAndExpand};
 
             footerTrackDetailsLayout = new StackLayout
             {
@@ -333,7 +330,7 @@ namespace TuneTaster
                             }
                             else
                             {
-                                UpdateTrackList("missingTrack.png", track.Name, track.Artists[0].Name, track.PreviewUrl);
+                                UpdateTrackList("missingTrack.jpg", track.Name, track.Artists[0].Name, track.PreviewUrl);
                             }
                         }
                         searchLoadingSpinner.IsVisible = false;
@@ -485,7 +482,7 @@ namespace TuneTaster
                             }
                             else
                             {
-                                UpdateAlbumList(album, "missingAlbum.png", album.Name);
+                                UpdateAlbumList(album, "missingAlbum.jpg", album.Name);
                             }
                         }
                         searchLoadingSpinner.IsVisible = false;
@@ -630,7 +627,7 @@ namespace TuneTaster
                             }
                             else
                             {
-                                UpdateArtistList(artist, "missingArtist.png", artist.Name, artist.Popularity);
+                                UpdateArtistList(artist, "missingArtist.jpg", artist.Name, artist.Popularity);
                             }
                         }
                         searchLoadingSpinner.IsVisible = false;
@@ -755,7 +752,6 @@ namespace TuneTaster
                     albumsScrollLayout.IsVisible = false;
                 }
             }
-
             return true;
         }
     }

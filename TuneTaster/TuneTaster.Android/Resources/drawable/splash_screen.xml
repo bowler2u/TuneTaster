@@ -6,9 +6,7 @@
     </shape>
   </item>
   <item>
-    <bitmap android:gravity="center" android:src="@drawable/Icon" />
+    <bitmap android:gravity="center" 
+            android:src="@drawable/SplashLogo" />
   </item>
 </layer-list>
-
-
-

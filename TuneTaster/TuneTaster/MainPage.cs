@@ -13,6 +13,7 @@ namespace TuneTaster
 {
     class MainPage : ContentPage
     {   
+
         // --- Variables --//
         // Header.
         Picker resultsTypePicker;

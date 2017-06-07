@@ -1,7 +1,8 @@
 ﻿using Android.Media;
 using Android.Widget;
+using Newtonsoft.Json.Linq;
+using RestSharp;
 using SpotifyAPI.Web;
-using SpotifyAPI.Web.Auth;
 using SpotifyAPI.Web.Enums;
 using SpotifyAPI.Web.Models;
 using System.Collections.Generic;
@@ -11,21 +12,7 @@ using Xamarin.Forms;
 namespace TuneTaster
 {
     class MainPage : ContentPage
-    {
-        // --- Spotify Authentication --- //
-        private static ClientCredentialsAuth auth = new ClientCredentialsAuth
-        {
-            ClientId = "333de38e4a2744fcbe33eae8a39d8bce",
-            ClientSecret = "141675ff5e274186b45ef48493a9a5bf",
-            Scope = Scope.UserReadPrivate,
-        };
-        private static Token token = auth.DoAuth();
-        private static SpotifyWebAPI _spotify = new SpotifyWebAPI
-        {
-            TokenType = token.TokenType,
-            AccessToken = token.AccessToken,
-        };
-
+    {   
         // --- Variables --//
         // Header.
         Picker resultsTypePicker;
@@ -60,7 +47,9 @@ namespace TuneTaster
         Grid footerBarLayout;
         StackLayout footer;
 
-        // Music functionality.
+        // Music functionality/Spotify API.
+        public static string accessToken;
+        SpotifyWebAPI _spotify;
         SearchItem searchItem;
         Paging<SimpleTrack> albumsTracks;
         Paging<SimpleAlbum> artistsAlbums;
@@ -78,6 +67,29 @@ namespace TuneTaster
 
         public MainPage()
         {
+            // Initalize Spotify Authentication.
+            var client = new RestClient("https://accounts.spotify.com/api/token");
+            var request = new RestRequest(Method.POST);
+            request.AddHeader("content-type", "application/x-www-form-urlencoded");
+            request.AddHeader("cache-control", "no-cache");
+            request.AddHeader("Authorization", "Basic MzMzZGUzOGU0YTI3NDRmY2JlMzNlYWU4YTM5ZDhiY2U6MTQxNjc1ZmY1ZTI3NDE4NmI0NWVmNDg0OTNhOWE1YmY=");
+            request.AddParameter("application/x-www-form-urlencoded", "grant_type=client_credentials", ParameterType.RequestBody);
+            IRestResponse response = client.Execute(request);
+
+            // Create a json object from the response context and grab only the access token and store it as a variable. This token is going to be 
+            // used when doing requests for songs, data, etc.
+            JObject contentObject = JObject.Parse(response.Content);
+            object accessTokenObject = contentObject["access_token"];
+            accessToken = accessTokenObject.ToString();
+
+            // Initalize the Spotify API, plugging in the generated token.
+            _spotify = new SpotifyWebAPI
+            {
+                 TokenType = "Bearer",
+                 AccessToken = accessToken,
+             };
+
+      
             // --- Header Content --- //
             // Search Bar.
             searchBar = new SearchBar

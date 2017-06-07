@@ -64,7 +64,6 @@ namespace TuneTaster
         Toast noresultsToast;
         TapGestureRecognizer tapGestureRecognizer;
 
-
         public MainPage()
         {
             // Initalize Spotify Authentication.

@@ -13,7 +13,6 @@ namespace TuneTaster
 {
     class MainPage : ContentPage
     {   
-
         // --- Variables --//
         // Header.
         Picker resultsTypePicker;
@@ -94,7 +93,7 @@ namespace TuneTaster
             // Search Bar.
             searchBar = new SearchBar
             {
-                WidthRequest = 275,
+                MinimumWidthRequest = 200,
                 Placeholder = "Search...",
                 TextColor = Color.White,
                 PlaceholderColor = Color.White,
@@ -550,7 +549,6 @@ namespace TuneTaster
         {
             albumFrame = new Frame
             {
-                HeightRequest = 225,
                 Padding = 0,
                 Margin = 0,
                 GestureRecognizers = {
@@ -565,9 +563,8 @@ namespace TuneTaster
                     Children = {
                         new Xamarin.Forms.Image
                         {
-                            VerticalOptions = LayoutOptions.FillAndExpand,
-                            HorizontalOptions = LayoutOptions.FillAndExpand,
-                            Aspect = Aspect.AspectFill,
+                            HeightRequest = 200,
+                            Aspect = Aspect.Fill,
                             Source = albumImageSource,
                         },
                         new Label
@@ -663,7 +660,6 @@ namespace TuneTaster
             var artistPopularityString = artistPopularity.ToString();
             artistFrame = new Frame
             {
-                HeightRequest = 250,
                 Padding = 0,
                 Margin = 0,
                 GestureRecognizers = {
@@ -678,9 +674,8 @@ namespace TuneTaster
                     Children = {
                         new Xamarin.Forms.Image
                         {
-                            VerticalOptions = LayoutOptions.FillAndExpand,
-                            HorizontalOptions = LayoutOptions.FillAndExpand,
-                            Aspect = Aspect.AspectFill,
+                            HeightRequest = 200,
+                            Aspect = Aspect.Fill,
                             Source = artistImageSource,
                         },
                         new Label

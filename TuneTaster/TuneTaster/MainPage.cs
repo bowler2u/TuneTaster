@@ -93,6 +93,7 @@ namespace TuneTaster
             // Search Bar.
             searchBar = new SearchBar
             {
+                HorizontalOptions = LayoutOptions.FillAndExpand,
                 MinimumWidthRequest = 200,
                 Placeholder = "Search...",
                 TextColor = Color.White,
@@ -118,6 +119,7 @@ namespace TuneTaster
             searchTypes = new List<string> { "Tracks", "Albums", "Artists" };
             resultsTypePicker = new Picker
             {
+                HorizontalOptions = LayoutOptions.FillAndExpand,
                 Title = " Results Type",
                 TextColor = Color.White,
                 ItemsSource = searchTypes,

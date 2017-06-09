@@ -48,7 +48,7 @@ namespace TuneTaster
         StackLayout footer;
 
         // Music functionality/Spotify API.
-        public static string accessToken;
+        private static string accessToken;
         SpotifyWebAPI _spotify;
         SearchItem searchItem;
         Paging<SimpleTrack> albumsTracks;
@@ -75,8 +75,8 @@ namespace TuneTaster
             request.AddParameter("application/x-www-form-urlencoded", "grant_type=client_credentials", ParameterType.RequestBody);
             IRestResponse response = client.Execute(request);
 
-            // Create a json object from the response context and grab only the access token and store it as a variable. This token is going to be 
-            // used when doing requests for songs, data, etc.
+            // Create a json object from the response context and grab only the access token and store it as a variable. This token is required for
+            // doing track, album and artist requests.
             JObject contentObject = JObject.Parse(response.Content);
             object accessTokenObject = contentObject["access_token"];
             accessToken = accessTokenObject.ToString();
@@ -86,7 +86,7 @@ namespace TuneTaster
             {
                  TokenType = "Bearer",
                  AccessToken = accessToken,
-             };
+            };
 
       
             // --- Header Content --- //
@@ -729,14 +729,13 @@ namespace TuneTaster
 
 
         /// <summary>
-        /// If the user searches an album or artist and keeps selecting information they will be able to step out if they press the Android device's 
-        /// physical back button. However, if they search something and press the back button, nothing will happen.
+        /// Handle back button press events. The user should never be able to go back if they just searched something. However, if they select an album for example,
+        /// they should be able to press the back button and return to the albums screen.
         /// </summary>
         /// <returns>Prevents the app from closing.</returns>
         protected override bool OnBackButtonPressed()
         {        
 
-            // If the user has requested a search for an album.
             if (userSearchedAlbums == true)
             {
                 if (songsView.IsVisible == true)
@@ -746,7 +745,6 @@ namespace TuneTaster
                 }
             }
 
-            // If the user has requested a search for an artist.
             else if (userSearchedArtists == true)
             {
                 if (songsView.IsVisible == true)

@@ -18,22 +18,18 @@ When a track is selected, a footer will be generated at the bottom of the screen
 
 <tbody>
 <tr>
-<td align="left">Tracks
-<a href="/screenshots/tracks.png" target="_blank"></a>
+<td align="left">
+<a href="screenshots/tracks.png" target="_blank"></a>
 </td>
 
-<td align="left">Tracks
-<a href="/screenshots/albums.png" target="_blank"></a>
+<td align="left">
+<a href="screenshots/albums.png" target="_blank"></a>
 </td>
 
-<td align="left">Tracks
-<a href="/screenshots/artists.png" target="_blank"></a>
+<td align="left">
+<a href="screenshots/artists.png" target="_blank"></a>
 </td>
 </tr>
 </tbody>
 
 </table>
-
-
-
-

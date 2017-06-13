@@ -5,7 +5,9 @@ using RestSharp;
 using SpotifyAPI.Web;
 using SpotifyAPI.Web.Enums;
 using SpotifyAPI.Web.Models;
+using System;
 using System.Collections.Generic;
+using System.Net.Mail;
 using System.Threading.Tasks;
 using Xamarin.Forms;
 
@@ -318,41 +320,41 @@ namespace TuneTaster
             songsView.Root.Clear();
 
             Task.Factory.StartNew(() => searchItem = _spotify.SearchItems(searchBar.Text, SearchType.Track, 50))
-                .ContinueWith(antecendent =>
+            .ContinueWith(antecendent =>
+            {
+                if (searchItem.Tracks.Total == 0)
                 {
-                    if (searchItem.Tracks.Total == 0)
+                    if (noresultsToast != null)
                     {
-                        if (noresultsToast != null)
-                        {
-                            noresultsToast.Cancel();
-                        }
-                        noresultsToast = Toast.MakeText(Android.App.Application.Context, "No results!", ToastLength.Long);
-                        noresultsToast.SetGravity(Android.Views.GravityFlags.Center, 0, 0);
-                        noresultsToast.Show();
-                        searchLoadingSpinner.IsVisible = false;
-                        searchLoadingSpinner.IsRunning = false;
+                        noresultsToast.Cancel();
                     }
-                    else
+                    noresultsToast = Toast.MakeText(Android.App.Application.Context, "No results!", ToastLength.Long);
+                    noresultsToast.SetGravity(Android.Views.GravityFlags.Center, 0, 0);
+                    noresultsToast.Show();
+                    searchLoadingSpinner.IsVisible = false;
+                    searchLoadingSpinner.IsRunning = false;
+                }
+                else
+                {
+                    foreach (FullTrack track in searchItem.Tracks.Items)
                     {
-                        foreach (FullTrack track in searchItem.Tracks.Items)
+                        int imagesCount = track.Album.Images.Count;
+                        if (imagesCount > 0)
                         {
-                            int imagesCount = track.Album.Images.Count;
-                            if (imagesCount > 0)
-                            {
-                                UpdateTrackList(track.Album.Images[imagesCount/2].Url, track.Name, track.Artists[0].Name, track.PreviewUrl);
-                            }
-                            else
-                            {
-                                UpdateTrackList("missingTrack.jpg", track.Name, track.Artists[0].Name, track.PreviewUrl);
-                            }
+                            UpdateTrackList(track.Album.Images[imagesCount / 2].Url, track.Name, track.Artists[0].Name, track.PreviewUrl);
                         }
-                        searchLoadingSpinner.IsVisible = false;
-                        searchLoadingSpinner.IsRunning = false;
-                        songsView.IsVisible = true;
+                        else
+                        {
+                            UpdateTrackList("missingTrack.jpg", track.Name, track.Artists[0].Name, track.PreviewUrl);
+                        }
                     }
-                },
-                TaskScheduler.FromCurrentSynchronizationContext()
-                );
+                    searchLoadingSpinner.IsVisible = false;
+                    searchLoadingSpinner.IsRunning = false;
+                    songsView.IsVisible = true;
+                }
+            },
+            TaskScheduler.FromCurrentSynchronizationContext()
+            );
         }
 
 
@@ -734,8 +736,7 @@ namespace TuneTaster
         /// </summary>
         /// <returns>Prevents the app from closing.</returns>
         protected override bool OnBackButtonPressed()
-        {        
-
+        {
             if (userSearchedAlbums == true)
             {
                 if (songsView.IsVisible == true)

@@ -6,6 +6,34 @@ At the top of the app you will find a search bar and a picker. First, pick your 
 The Spotify API will then get called and populate results on screen. You can navigate your way through the results and select a desired track.
 When a track is selected, a footer will be generated at the bottom of the screen, allowing for pausing and resuming of the selected track.
 
+<h3>Screenshots</h3>
+<table>
+<thread>
+<tr>
+<th align="left">Tracks</th>
+<th align="left">Albums</th>
+<th align="left">Artists</th>
+</tr>
+</thread>
+
+<tbody>
+<tr>
+<td align="left">Tracks
+<a href="/screenshots/tracks.png" target="_blank"></a>
+</td>
+
+<td align="left">Tracks
+<a href="/screenshots/albums.png" target="_blank"></a>
+</td>
+
+<td align="left">Tracks
+<a href="/screenshots/artists.png" target="_blank"></a>
+</td>
+</tr>
+</tbody>
+
+</table>
+
 
 
 

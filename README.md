@@ -19,15 +19,15 @@ When a track is selected, a footer will be generated at the bottom of the screen
 <tbody>
 <tr>
 <td align="left">
-![tracks](/screenshots/tracks.png)
+<img src="screenshots/tracks.png" alt="tracks"/>
 </td>
 
 <td align="left">
-![albums](/screenshots/albums.png)
+<img src="screenshots/albums.png" alt="albums"/>
 </td>
 
 <td align="left">
-![artists](/screenshots/artists.png)
+<img src="screenshots/artists.png" alt="artists"/>
 </td>
 </tr>
 </tbody>

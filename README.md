@@ -8,26 +8,18 @@ When a track is selected, a footer will be generated at the bottom of the screen
 
 <h3>Screenshots</h3>
 <table>
-<thread>
-<tr>
-<th align="left">Tracks</th>
-<th align="left">Albums</th>
-<th align="left">Artists</th>
-</tr>
-</thread>
-
 <tbody>
 <tr>
 <td align="left">
-<img src="screenshots/tracks.png" alt="tracks"/>
+<img src="screenshots/1.png" alt="tunetaster"/>
 </td>
 
 <td align="left">
-<img src="screenshots/albums.png" alt="albums"/>
+<img src="screenshots/2.png" alt="tunetaster"/>
 </td>
 
 <td align="left">
-<img src="screenshots/artists.png" alt="artists"/>
+<img src="screenshots/3.png" alt="tunetaster"/>
 </td>
 </tr>
 </tbody>

@@ -1,10 +1,15 @@
 # TuneTaster
-This application uses the<a href="https://developer.spotify.com/web-api/"> Spotify Web API </a>to retrieve tracks, albums and artists, which you can navigate through and listen to preview tracks based on what you search for.<br>
+TuneTaster is an Android/iOS application which uses the <a href="https://developer.spotify.com/web-api/">Spotify Web API</a> to retrieve albums, artists and preview tracks to listen to.
 
-At the top of the app you will find a search bar and a picker. First, pick your desired result type being either artists, albums or tracks. After, query a desired result based on the result type you just selected.<br>
+<a href="https://play.google.com/store/apps/details?id=com.tunetaster.tunetaster&hl=en"> View on Google Play </a><br>
 
-The Spotify API will then get called and populate results on screen. You can navigate your way through the results and select a desired track.
-When a track is selected, a footer will be generated at the bottom of the screen, allowing for pausing and resuming of the selected track.
+<h3>Application Features</h3>
+
+ - Discover popular albums, artists and tracks<br>
+ 
+ - Listen to 30 second track previews from any album or artist<br>
+ 
+ - Easy to use UI allows for quick and seamless user experience<br>
 
 <h3>Screenshots</h3>
 <table>
